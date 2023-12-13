@@ -1,0 +1,138 @@
+{% macro matchData(match, team) %}
+    <th scope="row" class="text-end">{{match.matchLevel}}</th>
+    <th scope="row" class="text-center"><a href="/teamMatchBreakdown/{{team.teamNumber}}/{{match.eventKey}}/{{match.matchNumber}}">{{match.matchNumber}}</a></th>
+    <td scope="row">dummy data</td>
+{% endmacro %}
+{% macro gameSpecificHeaders() %} 
+    <th scope="col" style="width: 5%">Match Level</th>
+    <th scope="col" class="text-center" style="width: 5%">Match #</th>
+    <th scope="col" style="width: 90%">dummy</th>
+{% endmacro %}
+{% macro teamPreview(driverStation, team, matchesPlayed) %}
+    <h4><a class="link-dark" href="/teamBreakdown/{{team.teamNumber}}">{{ driverStation }}: {{ team.teamNumber }} - {{ team.teamName }}</a></h4>
+    <table class="table">
+        <thead>
+            <tr>  
+                {{gameSpecificHeaders()}}
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in matchesPlayed %}
+            <tr>
+                {{matchData(match, team)}}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th scope="row" colspan="2" class="table-secondary text-end">
+                    Averages:
+                </th>
+                <td>
+                    dummydata
+                </td>
+            </tr>
+        </tbody>
+    </table>
+{% endmacro %}
+{% macro teamReview(driverStation, teamNumber, teamName, matchPlayed) %}
+    <h4>{{ driverStation }}: {{ teamNumber }} - {{ teamName.teamName }}</h4>
+    <table class="table">
+        <thead>
+            <tr>  
+                {{gameSpecificHeaders()}}
+            </tr>
+        </thead>
+        <tbody>
+            {% if matchPlayed != None %}
+            <tr>
+                {{matchData(matchPlayed, teamNumber)}}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" class="table-warning">
+                    No data recorded
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endmacro %}
+{% macro teamListings(teams) %}
+<table class="table">
+    <thead>
+        <th scope="col" class="text-end">Team Number</th>
+        <th scope="col" class="text-center">Team Name</th>
+        <th scope="col" class="text-center">Matches Played</th>
+        <th scope="col" class="text-center">Pit Scouted?</th>
+    </thead>
+    <tbody>
+        {% for team in teams %}
+        <tr>
+            <th scope="row" class="text-end">
+                <a class="link-dark" href="/teamBreakdown/{{team.teamNumber}}">
+                    {{team.teamNumber}}
+                </a>
+            </th>
+            <td>{{team.teamName}}</td>
+            {% if team.allMatchesScouted() %}
+            <td class="table-success text-center">
+            {% elif team.getMatchesToPlay() == 0 %}
+            <td class="text-center">
+            {% elif team.getMatchesPlayed() == 0 %}
+            <td class="table-danger text-center">
+            {% else %}
+            <td class="table-warning text-center">
+            {% endif %}
+                {{team.getMatchesPlayed()}}/{{team.getMatchesToPlay()}}
+            </td>
+            {% if team.hasPitScoutData() %}
+            <td class="table-success text-center">
+                <i class="bi bi-check"></i>
+            </td>
+            {% else %}
+            <td class="table-warning text-center">
+                <i class="bi bi-x"></i>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+{% macro pitScoutData(team, pitData) %}
+<table class="table">
+    <thead>
+        <th scope="col" colspan="2" class="text-center table-secondary">Team {{team.teamNumber}} Pit Data</th>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">
+                Drivetrain
+            </th>
+            <td>
+                {{pitData.drivetrain}}
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">
+                Programming
+            </th>
+            <td>
+                {{pitData.programmingLanguage}}
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">
+                Driveteam
+            </th>
+            {% if pitData.driveteam == 0 %}
+            <td class="table-warning text-center">
+                <i class="bi bi-x"></i>
+            {% else %}
+            <td class="table-success text-center">
+                <i class="bi bi-check"></i>
+            {% endif %}
+            </td>
+        </tr>
+    </tbody>
+</table>
+{% endmacro %}

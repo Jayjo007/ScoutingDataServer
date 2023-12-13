@@ -1,0 +1,57 @@
+{% macro teamInMatch(match, team, eventKey) %}
+    {% if match.checkIfTeamScouted(team) %}
+    <td class="table-success">
+        <a href="/teamMatchBreakdown/{{team}}/{{eventKey}}/{{match.matchNumber}}">
+            {{team}}        
+        </a>
+    </td>
+    {% elif match.checkIsScouted() %}
+    <td class="table-warning">{{team}}</td>
+    {% elif match.checkIfTeamHasPlayedMatch(team) %}
+        <td class="table-default">
+            <a href="/teamBreakdown/{{team}}">
+            {{team}}        
+            </a>
+        </td>
+    {% else %}
+        <td class="table-secondary">{{team}}</td>
+    {% endif %}
+{% endmacro %}
+{% macro matchRow(match, eventKey) %}
+<tr>
+    {% if match.checkIsScouted() %}
+        <th scope="row"><a href="/matchBreakdown/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></div>
+    {% elif match.checkIfCanBePreviewed() %}
+        <th scope="row">{{match.matchNumber}}: <a href="/matchPreview/{{match.matchNumber}}/{{match.matchLevel}}">Preview</a></div>
+    {% else %}
+        <th scope="row">{{match.matchNumber}}</div>
+    {% endif %}
+    {{teamInMatch(match, match.red1, eventKey)}}
+    {{teamInMatch(match, match.red2, eventKey)}}
+    {{teamInMatch(match, match.red3, eventKey)}}
+    {{teamInMatch(match, match.blue1, eventKey)}}
+    {{teamInMatch(match, match.blue2, eventKey)}}
+    {{teamInMatch(match, match.blue3, eventKey)}}
+
+</tr>
+{% endmacro %}
+{% macro matchScheduleMacro(matches, eventKey)%}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Match Number</th>
+                <th scope="col">Red 1</th>
+                <th scope="col">Red 2</th>
+                <th scope="col">Red 3</th>
+                <th scope="col">Blue 1</th>
+                <th scope="col">Blue 2</th>
+                <th scope="col">Blue 3</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for match in matches %}
+            {{ matchRow(match, eventKey) }}
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}

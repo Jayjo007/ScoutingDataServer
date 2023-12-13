@@ -1,0 +1,27 @@
+{% from 'macros/sitewide.html' import htmlHead, navBar %}
+<!DOCTYPE html> 
+<head> 
+    {{htmlHead()}}
+</head>
+<body>
+    <div class="jumbotron text-center">
+      {{navBar()}}
+        <h1>Data Import</h1>
+      </div>
+      
+      <div class="container">
+        <div class="row">
+          <div class="col text-center">
+            <h3>Pit Scouting</h3>
+            <form method="post">
+                <div class="form-group">
+                    <label for="pitData">Pitscouting Data Submission</label>
+                    <input type="text" name="pitData" id="pitData" placeholder="Insert here">
+                    <button type="submit" class="btn btn-primary mb-2">Import</button>
+                </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>

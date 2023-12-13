@@ -1,0 +1,19 @@
+{% macro render_field(field, teams) %}
+<div class="col">
+    <dt>{{ field.label }}<br/>
+        <dd>{{ field(list="teams-at-event")|safe }}
+            {% if field.errors %}
+            <ul class=errors>
+                {% for error in field.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </dd>
+        <datalist id="teams-at-event">
+        {% for team in teams %}
+        <option value="{{team.teamNumber}}"></option>
+        {% endfor %}
+        </datalist>
+</div>
+{% endmacro %}
