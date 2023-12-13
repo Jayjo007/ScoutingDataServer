@@ -1,6 +1,7 @@
 # ScoutingDataServer
 
-#To run
+To run
+
 Create virtual environment
 
 .venv\Scripts\Activate
