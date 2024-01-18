@@ -9,15 +9,15 @@
       
       <div class="container">
         <div class="row text-center">
-                <h3>Team {{ team.teamNumber }}: {{ team.teamName }} Breakdown <a href="/teamDataInspector" class="btn btn-primary m-1">View another team</a></h3>
+                <h3>Team {{ team.teamNumber }}: {{ team.teamName }} Breakdown <a href="/teamDataInspector" class="btn btn-primary m-1 d-print-none">View another team</a></h3>
         </div>
         <div class="row">
           <div class="row">
-            <div class="col-9">
+            <div class="col-9 d-print-table-row">
               {{ teamPreview("Match Data", team, currentEventMatches) }}
             </div>
             {% if team.hasPitScoutData() %}
-            <div class="col-3">
+            <div class="col-3 d-print-table-row">
               {{ pitScoutData(team, team.getPitScoutData()) }}
             </div>
             {% endif %}

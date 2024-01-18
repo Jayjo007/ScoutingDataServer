@@ -1,7 +1,7 @@
 {% macro teamInMatch(match, team, eventKey) %}
     {% if match.checkIfTeamScouted(team) %}
     <td class="table-success">
-        <a href="/teamMatchBreakdown/{{team}}/{{eventKey}}/{{match.matchNumber}}">
+        <a href="/teamMatchBreakdown/{{team}}/{{eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">
             {{team}}        
         </a>
     </td>

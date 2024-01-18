@@ -1,39 +1,88 @@
 {% macro matchData(match, team) %}
+    {% if team != None %}
     <th scope="row" class="text-end">{{match.matchLevel}}</th>
-    <th scope="row" class="text-center"><a href="/teamMatchBreakdown/{{team.teamNumber}}/{{match.eventKey}}/{{match.matchNumber}}">{{match.matchNumber}}</a></th>
-    <td scope="row">dummy data</td>
+    <th scope="row" class="text-center"><a href="/teamMatchBreakdown/{{team}}/{{match.eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></th>
+    {% endif %}
+    <td scope="row" class="text-center">{{match.auto_speaker}}</td>
+    <td scope="row" class="text-center">{{match.auto_amp}}</td>
+    {% if match.auto_leave == 1 %}
+    <td class="table-success text-center">
+        <i class="bi bi-check"></i>
+    </td>
+    {% elif match.auto_leave == 0 %}
+    <td class="table-danger text-center">
+        <i class="bi bi-x"></i>
+    </td>
+    {% else %}
+    <td scope="row" class="text-center">{{match.auto_leave}}</td>
+    {% endif %}
+    <td scope="row" class="text-center">{{match.tele_speaker}}</td>
+    <td scope="row" class="text-center">{{match.tele_amp}}</td>
+    <td scope="row" class="text-center">{{match.trap}}</td>
+    {% if match.climb == -1 %}
+    <td scope="row" class="text-center table-secondary">N/A</td>
+    {% elif match.climb == 0 %}
+    <td scope="row" class="text-center table-danger">FAIL</td>
+    {% else %}
+    <td scope="row" class="text-center table-success">{{match.climb}}</td>
+    {% endif %}
+    <td scope="row" class="text-center">{{match.defense}}</td>
+    <td scope="row" class="text-center">{{match.broken}}</td>
 {% endmacro %}
 {% macro gameSpecificHeaders() %} 
-    <th scope="col" style="width: 5%">Match Level</th>
-    <th scope="col" class="text-center" style="width: 5%">Match #</th>
-    <th scope="col" style="width: 90%">dummy</th>
+    <tr>
+
+        <th scope="col" rowspan="2" style="width: 5%">Match Level</th>
+        <th scope="col" rowspan="2" class="text-center" style="width: 5%">Match #</th>
+        <th scope="col" colspan="3" class="text-center">Auto</th>
+        <th scope="col" colspan="2" class="text-center">Teleop</th>
+        <th scope="col" colspan="2" class="text-center">Endgame</th> 
+        <th scope="col" colspan="2" class="text-center">Misc.</th>
+    </tr>
+    <tr>
+        <th scope="col" class="text-center" style="width: 8%">Speaker</th>
+        <th scope="col" class="text-center" style="width: 8%">Amp</th>
+        <th scope="col" class="text-center" style="width: 8%">Leave</th>
+        <th scope="col" class="text-center" style="width: 8%">Speaker</th>
+        <th scope="col" class="text-center" style="width: 8%">Amp</th>
+        <th scope="col" class="text-center" style="width: 8%">Trap</th>
+        <th scope="col" class="text-center" style="width: 8%">Climb</th>
+        <th scope="col" class="text-center" style="width: 8%">Defense</th>
+        <th scope="col" class="text-center" style="width: 8%">Broken?</th>
+    </tr>
 {% endmacro %}
 {% macro teamPreview(driverStation, team, matchesPlayed) %}
-    <h4><a class="link-dark" href="/teamBreakdown/{{team.teamNumber}}">{{ driverStation }}: {{ team.teamNumber }} - {{ team.teamName }}</a></h4>
-    <table class="table">
-        <thead>
-            <tr>  
-                {{gameSpecificHeaders()}}
-            </tr>
-        </thead>
-        <tbody>
-            {% for match in matchesPlayed %}
-            <tr>
-                {{matchData(match, team)}}
-            </tr>
-            {% endfor %}
-            <tr>
-                <th scope="row" colspan="2" class="table-secondary text-end">
-                    Averages:
-                </th>
-                <td>
-                    dummydata
-                </td>
-            </tr>
-        </tbody>
-    </table>
-{% endmacro %}
-{% macro teamReview(driverStation, teamNumber, teamName, matchPlayed) %}
+    <div style="page-break-inside:avoid;">
+        <h4><a class="link-dark" href="/teamBreakdown/{{team.teamNumber}}">{{ driverStation }}: {{ team.teamNumber }} - {{ team.teamName }}</a></h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>  
+                    {{gameSpecificHeaders()}}
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matchesPlayed %}
+                <tr>
+                    {{matchData(match, team.teamNumber)}}
+                </tr>
+                {% endfor %}
+                <tr>
+                    <th scope="row" colspan="2" class="table-secondary text-end">
+                        Averages:
+                    </th>
+                    {% if team.getAverages() != None %}
+                    {{matchData(team.getAverages(), None)}}
+                    {% else %}
+                    <td colspan="9" class="text-center table-warning">
+                        No averages to report
+                    </td>
+                    {% endif %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endmacro %}
+    {% macro teamReview(driverStation, teamNumber, teamName, matchPlayed) %}
     <h4>{{ driverStation }}: {{ teamNumber }} - {{ teamName.teamName }}</h4>
     <table class="table">
         <thead>

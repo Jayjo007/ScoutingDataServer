@@ -20,12 +20,22 @@
           </div>
         <div class="row">
           <div class="col-sm-6">
-            <h3>Event Key</h3>
-            <form action="/changeActiveEventKey" method="POST">
+            <div class="row">
+              <h3>Event Key</h3>
+              <form action="/changeActiveEventKey" method="POST">
                 <input type="text" name="newEventKey" id="newEventKey" placeholder="New Event Key">
                 <button type="submit" class="btn btn-primary">Set Active Event Key</button>
                 <p>Active Event Key: {{eventKey}}</p>
-            </form>
+              </form>
+            </div>
+            <div class="row">
+              <h3>Current Event Level</h3>
+              <form action="/changeActiveEventLevel" method="POST">
+                <input type="text" name="newEventLevel" id="newEventLevel" placeholder="New Event Level">
+                <button type="submit" class="btn btn-primary">Set Active Event Level</button>
+                <p>Active Event Level: {{eventLevel}}</p>
+              </form>
+            </div>
           </div>
           <div class="col-sm-6">
             <h3>Internet Admin</h3>

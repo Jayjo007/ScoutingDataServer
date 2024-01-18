@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from wtforms import Form, StringField, validators, ValidationError
 from dotenv import load_dotenv
 import json, urllib, os
-import requests
+import requests, datetime
 
 load_dotenv()
 
@@ -64,14 +64,21 @@ def importTeams():
 
 @app.route("/settings")
 def openSettings():
-    return render_template("settings.html", eventKey=getActiveEventKey(), ping=ping())
+    return render_template("settings.html", eventKey=getActiveEventKey(), ping=ping(), eventLevel=getCurrentMatchLevel())
 
 @app.route("/changeActiveEventKey", methods=["POST"])
 def submitNewEventKey():
     if request.method == 'POST':
         newEventKey = urllib.parse.unquote(request.get_data()).split("=")[-1]
         setActiveEventKey(newEventKey)
-    return render_template("settings.html", eventKey=getActiveEventKey())
+    return render_template("settings.html", eventKey=getActiveEventKey(), ping=ping(), eventLevel=getCurrentMatchLevel())
+
+@app.route("/changeActiveEventLevel", methods=["POST"])
+def submitNewEventLevel():
+    if request.method == 'POST':
+        newEventKey = urllib.parse.unquote(request.get_data()).split("=")[-1]
+        setActiveEventLevel(newEventKey)
+    return render_template("settings.html", eventKey=getActiveEventKey(), ping=ping(), eventLevel=getCurrentMatchLevel())
 
 @app.route("/downloadMatchSchedule", methods=["GET"])
 def getMatchScheduleRoute():
@@ -130,9 +137,9 @@ def getMatchBreakdown(matchNo, matchLevel):
     return render_template("match_breakdown.html", match=match, red1=red1Match, red2=red2Match, red3=red3Match, blue1=blue1Match, blue2=blue2Match, blue3=blue3Match, tn=tn)
 
 
-@app.route("/teamMatchBreakdown/<team>/<eventKey>/<matchNo>")
-def getTeamMatchBreakdown(team, matchNo, eventKey):
-    matchRecord = MatchData.query.filter_by(eventKey=eventKey, teamNumber=team, matchNumber=matchNo).first_or_404()
+@app.route("/teamMatchBreakdown/<team>/<eventKey>/<matchNo>/<eventLevel>")
+def getTeamMatchBreakdown(team, matchNo, eventKey, eventLevel):
+    matchRecord = MatchData.query.filter_by(eventKey=eventKey, teamNumber=team, matchNumber=matchNo, matchLevel=eventLevel).first_or_404()
     teamrecord = TeamRecord.query.filter_by(teamNumber=team).first()
     return render_template("team_match_breakdown.html", team=teamrecord, match=matchRecord, eventKey=eventKey)
     
@@ -202,6 +209,7 @@ def validate_preview(form, field):
         if int(field.data) not in getEventTeams():
             raise ValidationError("Team not at active event")
 
+
 class CustomMatchForm(Form):
     red1 = StringField('Red 1', [validators.Length(max=MAX_TEAM_NUMBER_LENGTH), validators.DataRequired(), validate_preview])
     red2 = StringField('Red 2', [validators.Length(max=MAX_TEAM_NUMBER_LENGTH), validators.DataRequired(), validate_preview])
@@ -244,14 +252,34 @@ class MatchData(db.Model):
     eventKey = db.Column(db.String(15), primary_key=True)
     matchNumber = db.Column(db.Integer(), primary_key=True)
     matchLevel = db.Column(db.String(50), primary_key=True)
+    auto_speaker = db.Column(db.Integer())
+    auto_amp = db.Column(db.Integer())
+    tele_speaker = db.Column(db.Integer())
+    tele_amp = db.Column(db.Integer())
+    trap = db.Column(db.Integer())
+    climb = db.Column(db.Integer())
+    defense = db.Column(db.Integer())
+    auto_leave = db.Column(db.Integer())
     tablet = db.Column(db.String(3))
+    scouter = db.Column(db.String(50))
     timestamp = db.Column(db.String(50))
 
     def __init__(self, data):
-        self.teamNumber = data["team_number"]
-        self.eventKey = data["event_key"]
-        self.matchNumber = data["match_number"]
-        self.matchLevel = data["matchLevel"]
+        self.teamNumber = data["teamNumber"]
+        self.eventKey = data["event"]
+        self.matchNumber = data["matchNumber"]
+        self.matchLevel = getCurrentMatchLevel()
+        self.auto_speaker = data["autoSpeaker"]
+        self.auto_amp = data["autoAmp"]
+        self.tele_speaker = data["teleSpeaker"]
+        self.tele_amp = data["teleAmp"]
+        self.trap = data["trap"]
+        self.climb = data["climbStatus"]
+        self.defense = data["defense"]
+        self.auto_leave = data["autoLeave"]
+        self.tablet = data["tablet"]
+        self.scouter = data["scouter"]
+        self.timestamp = datetime.datetime.now()
 
     def __str__(self):
         return self.teamNumber
@@ -261,8 +289,10 @@ class MatchData(db.Model):
             return "Qualification Match"
         elif (self.matchLevel=='f'):
             return "Finals Match"
-        else:
+        elif (self.matchLevel=="sf"):
             return "Playoff Match"
+        else:
+            return "Custom Match"
     
 class TeamRecord(db.Model):
     __tablename__ = 'teams'
@@ -294,12 +324,25 @@ class TeamRecord(db.Model):
             return PitScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).first()
         else:
             return None
-    
+    def getAverages(self):
+        averages = MatchAverages(self.teamNumber)
+        if MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count() > 0:
+            for match in MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).all():
+                averages.addAverage(match)
+            averages.climb*=100
+            averages.climb = str(averages.climb)+"%"
+            averages.auto_leave*=100
+            averages.auto_leave = str(averages.auto_leave)+"%"
+            return averages
+        else:
+            return None
+
 
 class ActiveEventKey(db.Model):
     __tablename__ = 'activeeventkey'
     index = db.Column(db.Integer(), primary_key = True)
     activeEventKey = db.Column(db.String(50))
+
     def __init__(self, activeEventKey):
         self.index = 1
         self.activeEventKey = activeEventKey
@@ -331,7 +374,7 @@ class MatchSchedule(db.Model):
         else:
             return False
     def checkIfTeamScouted(self, team):
-        if MatchData.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, teamNumber=team).count() > 0:
+        if MatchData.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel, teamNumber=team).count() > 0:
             return True
         else:
             return False
@@ -369,6 +412,38 @@ class TeamAtEvent(db.Model):
     def __init__(self, teamNumber, eventKey):
         self.teamNumber = teamNumber
         self.eventKey = eventKey
+
+class MatchAverages():
+    def __init__(self, teamNumber):
+        self.teamNumber = teamNumber
+        self.auto_speaker = 0.0
+        self.auto_amp = 0.0
+        self.tele_speaker = 0.0
+        self.tele_amp = 0.0
+        self.trap = 0
+        self.climb = 0.00
+        self.defense = "N/A"
+        self.auto_leave = 0.00
+        self.count = 0
+        self.climbAttempts = 0
+    def addAverage(self, matchData):
+        self.auto_speaker=(self.auto_speaker*self.count+matchData.auto_speaker)/(self.count+1)
+        self.auto_amp=(self.auto_amp*self.count+matchData.auto_amp)/(self.count+1)
+        self.tele_speaker=(self.tele_speaker*self.count+matchData.tele_speaker)/(self.count+1)
+        self.tele_amp=(self.tele_amp*self.count+matchData.tele_amp)/(self.count+1)
+        self.trap=(self.trap*self.count+matchData.trap)/(self.count+1)
+        if (matchData.climb > 0):
+            self.climb=(self.climb*self.climbAttempts+1)/(self.climbAttempts+1)
+            self.climbAttempts+=1
+        elif (matchData.climb == 0):
+            self.climb=(self.climb*self.climbAttempts)/(self.climbAttempts+1)
+            self.climbAttempts+=1
+        if (matchData.auto_leave != 0):
+            self.auto_leave=(self.auto_leave*self.count+1)/(self.count+1)
+        else:
+            self.auto_leave=(self.auto_leave*self.count)/(self.count+1)
+        self.count += 1
+        
 
 def getEventTeams():
     teams = set()
@@ -433,9 +508,23 @@ def getActiveEventKey():
         return ActiveEventKey.query.first().activeEventKey
     return "Undefined"
 
+def getCurrentMatchLevel():
+    if (not ActiveEventKey.query.filter_by(index=2).first() == None):
+        return ActiveEventKey.query.filter_by(index=2).first().activeEventKey
+    return "qm"
+
 def setActiveEventKey(newEventKey):
     if (not ActiveEventKey.query.first() == None):
         ActiveEventKey.query.first().activeEventKey = newEventKey
     else:
         db.session.add(ActiveEventKey(newEventKey))
+    db.session.commit()
+
+def setActiveEventLevel(newEventLevel):
+    if (not ActiveEventKey.query.filter_by(index="2").first() == None):
+        ActiveEventKey.query.filter_by(index="2").first().activeEventKey = newEventLevel
+    else:
+        newLevel = ActiveEventKey(newEventLevel)
+        newLevel.index = 2
+        db.session.add(newLevel)
     db.session.commit()

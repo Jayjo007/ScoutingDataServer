@@ -14,7 +14,7 @@
     </style>
 {% endmacro %}
 {% macro navBar() %}
-    <div class="jumbotron text-center">
+    <div class="jumbotron text-center d-print-none">
         <div class="row">
         <div class="col-sm-2">
             <a href="/" class="btn btn-primary m-1">Home</a>
@@ -23,6 +23,11 @@
             <h1>Comets 3357 Scouting Hub</h1>
         </div>
         <div class="col-sm-2">
+            <h3>
+                <a onClick="window.print()">
+                    <i class="bi bi-printer"></i>
+                </a>
+            </h3>
         </div>
         </div>
     </div>
