@@ -1,0 +1,22 @@
+{% from 'macros/sitewide.html' import htmlHead, navBar %}
+{% from 'macros/macros.html' import teamSuperScout %}
+<!DOCTYPE html> 
+<head> 
+  {{ htmlHead() }}    
+</head>
+<body>
+      {{ navBar() }}
+      
+      <div class="container">
+        <div class="row text-center">
+                <h3>Match {{ match.matchNumber }} at {{ match.eventKey }} SuperScout</h3>
+        </div>
+        <div class="row">
+          <div class="row">
+            {{teamSuperScout(match)}}
+          </div>
+        </div>
+      </div>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+

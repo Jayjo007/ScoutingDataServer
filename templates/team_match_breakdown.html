@@ -1,5 +1,5 @@
 {% from 'macros/sitewide.html' import htmlHead, navBar %}
-{% from 'macros/macros.html' import teamReview %}
+{% from 'macros/macros.html' import teamReview, teamSuperScoutPreview %}
 <!DOCTYPE html> 
 <head> 
     {{htmlHead()}}    
@@ -14,9 +14,14 @@
         <div class="row">
         
           <div class="row">
-            <div class="col-9 d-print-table-row">
+            <div class="row">
               {{ teamReview("Match Breakdown", team.teamNumber, team, match) }}
             </div>
+            {% if superScout.count() == 1 %}
+            <div class="row">
+              {{ teamSuperScoutPreview(team, superScout) }}
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>

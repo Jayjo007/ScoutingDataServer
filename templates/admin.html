@@ -4,7 +4,7 @@
     {{htmlHead()}}
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
     <script type="text/javascript"> $(function() { $("#clearEventDataButton").click(function (event) { $.getJSON('/clearEventData', { },
-        function(data) { }); return false; }); }); </script>     
+        function(data) { }); return false; }); }); </script>   
 </head>
 <body>
       {{navBar()}}
@@ -17,7 +17,7 @@
             <div class="col">
                 <div class="row">
                     <h4>Event Admin</h4>
-                    <button id="exportEventData" class="btn btn-info m-1">Export Active Event Data (Not Functional Yet)</button>
+                    <a id="exportEventData" download="dataDump.csv" href="/exportEventData" role="button" class="btn btn-info m-1">Export Active Event Data</a>
                     <button id="clearEventDataButton" class="btn btn-danger m-1">Clear Active Event Data</button> <br/>
                 </div>
             </div>

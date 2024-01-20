@@ -26,8 +26,15 @@
     {% else %}
     <td scope="row" class="text-center table-success">{{match.climb}}</td>
     {% endif %}
-    <td scope="row" class="text-center">{{match.defense}}</td>
-    <td scope="row" class="text-center">{{match.broken}}</td>
+    {% if match.defense == 0 %}
+    <td scope="row" class="text-center">None</td>
+    {% elif match.defense == 1 %}
+    <td scope="row" class="text-center">Meh</td>
+    {% elif match.defense == 2 %}
+    <td scope="row" class="text-center">Good</td>
+    {% else %}
+    <td scope="row" class="text-center">Epic</td>
+    {% endif %}
 {% endmacro %}
 {% macro gameSpecificHeaders() %} 
     <tr>
@@ -37,73 +44,72 @@
         <th scope="col" colspan="3" class="text-center">Auto</th>
         <th scope="col" colspan="2" class="text-center">Teleop</th>
         <th scope="col" colspan="2" class="text-center">Endgame</th> 
-        <th scope="col" colspan="2" class="text-center">Misc.</th>
+        <th scope="col" colspan="1" class="text-center">Misc.</th>
     </tr>
     <tr>
-        <th scope="col" class="text-center" style="width: 8%">Speaker</th>
-        <th scope="col" class="text-center" style="width: 8%">Amp</th>
-        <th scope="col" class="text-center" style="width: 8%">Leave</th>
-        <th scope="col" class="text-center" style="width: 8%">Speaker</th>
-        <th scope="col" class="text-center" style="width: 8%">Amp</th>
-        <th scope="col" class="text-center" style="width: 8%">Trap</th>
-        <th scope="col" class="text-center" style="width: 8%">Climb</th>
-        <th scope="col" class="text-center" style="width: 8%">Defense</th>
-        <th scope="col" class="text-center" style="width: 8%">Broken?</th>
+        <th scope="col" class="text-center">Speaker</th>
+        <th scope="col" class="text-center">Amp</th>
+        <th scope="col" class="text-center">Leave</th>
+        <th scope="col" class="text-center">Speaker</th>
+        <th scope="col" class="text-center">Amp</th>
+        <th scope="col" class="text-center">Trap</th>
+        <th scope="col" class="text-center">Climb</th>
+        <th scope="col" class="text-center">Defense</th>
     </tr>
 {% endmacro %}
 {% macro teamPreview(driverStation, team, matchesPlayed) %}
-    <div style="page-break-inside:avoid;">
-        <h4><a class="link-dark" href="/teamBreakdown/{{team.teamNumber}}">{{ driverStation }}: {{ team.teamNumber }} - {{ team.teamName }}</a></h4>
-        <table class="table table-bordered">
-            <thead>
-                <tr>  
-                    {{gameSpecificHeaders()}}
-                </tr>
-            </thead>
-            <tbody>
-                {% for match in matchesPlayed %}
-                <tr>
-                    {{matchData(match, team.teamNumber)}}
-                </tr>
-                {% endfor %}
-                <tr>
-                    <th scope="row" colspan="2" class="table-secondary text-end">
-                        Averages:
-                    </th>
-                    {% if team.getAverages() != None %}
-                    {{matchData(team.getAverages(), None)}}
-                    {% else %}
-                    <td colspan="9" class="text-center table-warning">
-                        No averages to report
-                    </td>
-                    {% endif %}
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    {% endmacro %}
-    {% macro teamReview(driverStation, teamNumber, teamName, matchPlayed) %}
-    <h4>{{ driverStation }}: {{ teamNumber }} - {{ teamName.teamName }}</h4>
-    <table class="table">
+<div style="page-break-inside:avoid;">
+    <h4><a class="link-dark" href="/teamBreakdown/{{team.teamNumber}}">{{ driverStation }}: {{ team.teamNumber }} - {{ team.teamName }}</a></h4>
+    <table class="table table-bordered">
         <thead>
             <tr>  
                 {{gameSpecificHeaders()}}
             </tr>
         </thead>
         <tbody>
-            {% if matchPlayed != None %}
+            {% for match in matchesPlayed %}
             <tr>
-                {{matchData(matchPlayed, teamNumber)}}
+                {{matchData(match, team.teamNumber)}}
             </tr>
-            {% else %}
+            {% endfor %}
             <tr>
-                <td colspan="3" class="table-warning">
-                    No data recorded
+                <th scope="row" colspan="2" class="table-secondary text-end">
+                    Averages:
+                </th>
+                {% if team.getAverages() != None %}
+                {{matchData(team.getAverages(), None)}}
+                {% else %}
+                <td colspan="9" class="text-center table-warning">
+                    No averages to report
                 </td>
+                {% endif %}
             </tr>
-            {% endif %}
         </tbody>
     </table>
+</div>
+{% endmacro %}
+{% macro teamReview(driverStation, teamNumber, teamName, matchPlayed) %}
+<h4>{{ driverStation }}: {{ teamNumber }} - {{ teamName.teamName }}</h4>
+<table class="table">
+    <thead>
+        <tr>  
+            {{gameSpecificHeaders()}}
+        </tr>
+    </thead>
+    <tbody>
+        {% if matchPlayed != None %}
+        <tr>
+            {{matchData(matchPlayed, teamNumber)}}
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3" class="table-warning">
+                No data recorded
+            </td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
 {% endmacro %}
 {% macro teamListings(teams) %}
 <table class="table">
@@ -184,4 +190,182 @@
         </tr>
     </tbody>
 </table>
+{% endmacro %}
+{% macro superScoutHelper(team, red, dsN, dsId) %}
+<tr>
+    {% if (red==true) %}
+    <td class="text-end table-danger">
+        Red 
+        {% else %}
+    <td class="text-end table-primary">
+        Blue 
+        {% endif %}
+        {{dsN}}
+    </td>
+    <td class="text-end">
+        <input type="text" readonly class="form-control-plaintext" name="{{dsId}}TeamNumber" id="{{dsId}}TeamNumber" value="{{team}}">
+    </td>
+    <td>
+        <select name="{{dsId}}Position" id="{{dsId}}Position" class="form-select" aria-label="Position">
+            <option value="LEFT">Left</option>
+            <option value="CENTER">Center</option>
+            <option value="RIGHT">Right</option>
+        </select>
+    </td>
+    <td>
+        <select name="{{dsId}}Midline" id="{{dsId}}Midline" class="form-select" aria-label="Midline">
+            <option value="0">No Attempt</option>
+            <option value="1">Succeeded</option>
+            <option value="-1">Failed</option>
+        </select>
+    </td>
+    <td>
+        <select name="{{dsId}}ScoreLevel" id="{{dsId}}ScoreLevel" class="form-select" aria-label="Score Level">
+            <option value="None">None</option>
+            <option value="Amp">Amp</option>
+            <option value="Speaker">Speaker</option>
+            <option value="Both">Both</option>
+        </select>
+    </td>
+    <td>
+        <select name="{{dsId}}Intake" id="{{dsId}}Intake" class="form-select" aria-label="Intake">
+            <option value="None">None</option>
+            <option value="Source">Source</option>
+            <option value="Ground">Ground</option>
+            <option value="Both">Both</option>
+        </select>
+    </td>
+    <td class="text-center">
+        <input class="form-control form-check-input" type="checkbox" value="true" name="{{dsId}}Broken" id="{{dsId}}Broken">
+    </td>
+    <td>
+        <select name="{{dsId}}Tippy" id="{{dsId}}Tippy" class="form-select" aria-label="tippy">
+            <option value="NO" style="background-color: lightgreen;">No</option>
+            <option value="YS" style="background-color: #ffcccb;">Yes, when stopping</option>
+            <option value="YH" style="background-color: lightyellow;">Yes, when hit</option>
+        </select>
+    </td>
+    <td>
+        <select name="{{dsId}}Pushable" id="{{dsId}}Pushable" class="form-select" aria-label="pushable">
+            <option value="No" style="background-color: lightgreen;">No</option>
+            <option value="Yes" style="background-color: #ffcccb;">Yes</option>
+            <option value="Pushes others" style="background-color: aqua;">Pushes others</option>
+        </select>
+    </td>
+    <td>
+        <input type="text" class="form-control" name="{{dsId}}Notes" id="{{dsId}}Notes" aria-describedby="notes" placeholder="Notes">
+    </td>
+    <td>
+        <select name="{{dsId}}Overall" id="{{dsId}}Overall" class="form-select" aria-label="overall">
+            <option value="BAD" style="background-color: rgb(255, 64, 64);">Bad</option>
+            <option value="BIG" style="background-color: #ffcccb;">Bid</option>
+            <option value="MID" style="background-color: lightyellow;" selected>Mid</option>
+            <option value="MOOD" style="background-color: lightgreen;">Mood</option>
+            <option value="GOOD" style="background-color: aqua;">Good</option>
+        </select>
+    </td>
+</tr>
+{% endmacro %}
+{% macro superScoutPreviewHeaders() %}
+<thead class="thead-light">
+    <tr>
+        <th scope="col" class="text-center">Match #</th>
+        <th scope="col" class="text-center">Start Position</th>
+        <th scope="col" class="text-center">Midline</th>
+        <th scope="col" class="text-center">Score Level</th>
+        <th scope="col" class="text-center">Intake</th>
+        <th scope="col" class="text-center">Broken?</th>
+        <th scope="col" style="width: 10%" class="text-center">Tippy</th>
+        <th scope="col" style="width: 10%" class="text-center">Pushable</th>
+        <th scope="col" class="text-center" style="width: 20%">Notes</th>
+        <th scope="col" class="text-center">Overall</th>
+    </tr> 
+</thead>
+{% endmacro %}
+{% macro superScoutHeaders() %}
+<thead class="thead-light">
+    <tr>  
+        <th scope="col" style="width: 5%">Driver Station</th>
+        <th scope="col" style="width: 5%">Team #</th>
+        <th scope="col">Start Position</th>
+        <th scope="col">Midline Grabs</th>
+        <th scope="col">Score Level</th>
+        <th scope="col">Intake</th>
+        <th scope="col">Broken</th>
+        <th scope="col" style="width: 10%">Tippy</th>
+        <th scope="col" style="width: 10%">Pushable</th>
+        <th scope="col">Notes</th>
+        <th scope="col">Overall</th>
+    </tr>
+</thead>
+{% endmacro %}
+{% macro teamSuperScout(match) %}
+<form method="POST" action="/superScout/submit">
+<div class="row">
+<table class="table table-bordered table-hover">
+    <input type="text" readonly class="form-control-plaintext d-none" name="matchNumber" id="matchNumber" value="{{match.matchNumber}}">
+    {{ superScoutHeaders() }}
+    <tbody>
+        {{superScoutHelper(match.red1, true, 1, "red1") }}
+        {{superScoutHelper(match.red2, true, 2, "red2") }}
+        {{superScoutHelper(match.red3, true, 3, "red3") }}
+        {{superScoutHelper(match.blue1, false, 1, "blue1") }}
+        {{superScoutHelper(match.blue2, false, 2, "blue2") }}
+        {{superScoutHelper(match.blue3, false, 3, "blue3") }}
+    </tbody>
+    </div>
+</table>
+    <div class="row">
+        <input type="submit" value="Submit Match SuperScout" class="btn btn-primary">
+    </div>
+    </form>
+{% endmacro %}
+{% macro matchSuperScoutData(match) %}
+<tr>
+    <th scope="row" class="text-center">{{ match.matchNumber }}</th>
+    <td class="text-center">{{ match.startPosition }}</th>
+    {% if match.midlineGrab == "1" %}
+    <td class="table-success text-center">
+        <i class="bi bi-check"></i>
+    </td>
+    {% elif match.midlineGrab == "-1" %}
+    <td class="table-danger text-center">
+        <i class="bi bi-x"></i>
+    </td>
+    {% else %}
+    <td class="table-secondary text-center">
+        N/A
+    </td>
+    {% endif %}
+    <td scope="col" class="text-center">{{ match.scoreLevel }}</th>
+    <td scope="col" class="text-center">{{ match.intake }}</th>
+    {% if match.broken == 0 %}
+    <td class="table-success text-center">
+        <i class="bi bi-check"></i>
+    </td>
+    {% else %}
+    <td class="table-danger text-center">
+        BROKE
+    </td>
+    {% endif %}
+    <td scope="col" style="width: 10%" class="text-center">{{ match.tippy }}</th>
+    <td scope="col" style="width: 10%" class="text-center">{{ match.pushable }}</th>
+    <td scope="col">{{ match.notes }}</th>
+    <td scope="col" class="text-center">{{ match.overall }}</th>
+</tr>
+{% endmacro %}
+{% macro teamSuperScoutPreview(team, matchesPlayed) %}
+<div style="page-break-inside:avoid;">
+    <h4>{{ team.teamNumber }} - {{ team.teamName }} SuperScout Data</h4>
+    <table class="table table-bordered">
+        {{ superScoutPreviewHeaders() }}
+        <tbody>
+            {% for match in matchesPlayed %}
+            <tr>
+                {{ matchSuperScoutData(match) }}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endmacro %}
