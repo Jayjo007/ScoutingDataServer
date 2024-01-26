@@ -134,9 +134,7 @@ def getMatchBreakdown(matchNo, matchLevel):
     blue2record = TeamRecord.query.filter_by(teamNumber=match.blue2).first()
     blue3record = TeamRecord.query.filter_by(teamNumber=match.blue3).first()
     tn = TeamNames(red1record, red2record, red3record, blue1record, blue2record, blue3record)
-
     return render_template("match_breakdown.html", match=match, red1=red1Match, red2=red2Match, red3=red3Match, blue1=blue1Match, blue2=blue2Match, blue3=blue3Match, tn=tn)
-
 
 @app.route("/teamMatchBreakdown/<team>/<eventKey>/<matchNo>/<eventLevel>")
 def getTeamMatchBreakdown(team, matchNo, eventKey, eventLevel):
@@ -236,12 +234,12 @@ def superScoutLanding():
     form = SelectSuperScoutForm()
     return render_template("super_scout_landing.html", form=form, matchNumbers=getMatchNumbers())
 
-
 @app.route("/superScout/scout", methods=["GET", "POST"])
 def superScouting():
     matchNumber = request.args.get("matchNumber")
+    custom = request.args.get("custom")
     matchRecord = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel(), matchNumber=matchNumber).first()
-    return render_template("super_scout.html", match=matchRecord)
+    return render_template("super_scout.html", match=matchRecord, custom=custom)
 
 @app.route("/superScout/submit", methods=["POST"])
 def submitSuperScout():
@@ -257,7 +255,14 @@ def submitSuperScout():
             return render_template("redirect_superscout.html", matchNumber=int(request.form.get("matchNumber"))+1)
         return render_template("main_screen.html")
 
-@app.route("/superScout/scout/custom")
+
+@app.route("/superScout/scout/custom", methods=["GET"])
+def superScoutingCustom():
+    custom = True
+    matchRecord = MatchSchedule(getActiveEventKey(), "Custom", getCurrentMatchLevel(), -1, -1, -1, -1, -1, -1)
+    return render_template("super_scout.html", match=matchRecord, custom=custom)
+
+@app.route("/superScout/scout/customDEPRECATE")
 def superScoutCustom():
     form = CustomMatchForm(request.form)
     teamsAtEvent = TeamAtEvent.query.filter_by(eventKey=getActiveEventKey()).order_by(TeamAtEvent.teamNumber)
@@ -307,8 +312,8 @@ def show_match_submission():
     return render_template("match_data_import.html")
 
 def validate_preview(form, field):
-        if int(field.data) not in getEventTeams():
-            raise ValidationError("Team not at active event")
+    if int(field.data) not in getEventTeams():
+        raise ValidationError("Team not at active event")
         
 def validate_matchNumber(form, field):
     if int(field.data) not in getMatchNumbers():
@@ -439,6 +444,8 @@ class TeamRecord(db.Model):
         return SuperScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count() > 0
     def getMatchesPlayed(self):
         return MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count()
+    def getSuperScoutMatchesPlayed(self):
+        return SuperScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count()
     def getMatchesToPlay(self):
         count = 0
         count += MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel='qm', red1=self.teamNumber).count()
@@ -453,6 +460,11 @@ class TeamRecord(db.Model):
             return False
         else:
             return self.getMatchesPlayed() == self.getMatchesToPlay()
+    def allMatchesSuperScouted(self):
+        if self.getMatchesToPlay() == 0:
+            return False
+        else:
+            return self.getSuperScoutMatchesPlayed() == self.getMatchesToPlay()
     def getPitScoutData(self):
         if (self.hasPitScoutData()):
             return PitScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).first()
@@ -590,7 +602,7 @@ def getMatchNumbers():
     matchNumbers = set()
     matchListing = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel())
     for match in matchListing:
-        matchNumbers.add(match.matchNumber)
+        matchNumbers.add(int(match.matchNumber))
     return matchNumbers
 
 def importTeamNames():

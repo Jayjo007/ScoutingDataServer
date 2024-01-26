@@ -23,6 +23,8 @@
     <td scope="row" class="text-center table-secondary">N/A</td>
     {% elif match.climb == 0 %}
     <td scope="row" class="text-center table-danger">FAIL</td>
+    {% elif match.climb == 1 %}
+    <td scope="row" class="text-center table-success">CLIMBED</td>
     {% else %}
     <td scope="row" class="text-center table-success">{{match.climb}}</td>
     {% endif %}
@@ -32,8 +34,10 @@
     <td scope="row" class="text-center">Meh</td>
     {% elif match.defense == 2 %}
     <td scope="row" class="text-center">Good</td>
-    {% else %}
+    {% elif match.defense == 3 %}
     <td scope="row" class="text-center">Epic</td>
+    {% else %}
+    <td scope="row" class="text-center table-secondary">N/A</td>
     {% endif %}
 {% endmacro %}
 {% macro gameSpecificHeaders() %} 
@@ -114,10 +118,11 @@
 {% macro teamListings(teams) %}
 <table class="table">
     <thead>
-        <th scope="col" class="text-end">Team Number</th>
-        <th scope="col" class="text-center">Team Name</th>
-        <th scope="col" class="text-center">Matches Played</th>
-        <th scope="col" class="text-center">Pit Scouted?</th>
+        <th scope="col-3" class="text-end">Team Number</th>
+        <th scope="col-3" class="text-center">Team Name</th>
+        <th scope="col-2" class="text-center">Matches Played</th>
+        <th scope="col-2" class="text-center">SuperScouted<br/>Matches</th>
+        <th scope="col-2" class="text-center">Pit Scouted?</th>
     </thead>
     <tbody>
         {% for team in teams %}
@@ -138,6 +143,17 @@
             <td class="table-warning text-center">
             {% endif %}
                 {{team.getMatchesPlayed()}}/{{team.getMatchesToPlay()}}
+            </td>
+            {% if team.allMatchesSuperScouted() %}
+            <td class="table-success text-center">
+            {% elif team.getMatchesToPlay() == 0 %}
+            <td class="text-center">
+            {% elif team.getSuperScoutMatchesPlayed() == 0 %}
+            <td class="table-danger text-center">
+            {% else %}
+            <td class="table-warning text-center">
+            {% endif %}
+                {{team.getSuperScoutMatchesPlayed()}}/{{team.getMatchesToPlay()}}
             </td>
             {% if team.hasPitScoutData() %}
             <td class="table-success text-center">
@@ -191,7 +207,7 @@
     </tbody>
 </table>
 {% endmacro %}
-{% macro superScoutHelper(team, red, dsN, dsId) %}
+{% macro superScoutHelper(team, red, dsN, dsId, custom) %}
 <tr>
     {% if (red==true) %}
     <td class="text-end table-danger">
@@ -203,7 +219,12 @@
         {{dsN}}
     </td>
     <td class="text-end">
+         
+        {% if custom != True %}
         <input type="text" readonly class="form-control-plaintext" name="{{dsId}}TeamNumber" id="{{dsId}}TeamNumber" value="{{team}}">
+        {% else %}
+        <input type="text" class="form-control" name="{{dsId}}TeamNumber" id="{{dsId}}TeamNumber" value="" maxlength="4">
+        {% endif %}
     </td>
     <td>
         <select name="{{dsId}}Position" id="{{dsId}}Position" class="form-select" aria-label="Position">
@@ -282,11 +303,15 @@
     </tr> 
 </thead>
 {% endmacro %}
-{% macro superScoutHeaders() %}
+{% macro superScoutHeaders(custom) %}
 <thead class="thead-light">
     <tr>  
         <th scope="col" style="width: 5%">Driver Station</th>
+        {% if custom %}
+        <th scope="col" style="width: 8%">Team #</th>
+        {% else %}
         <th scope="col" style="width: 5%">Team #</th>
+        {% endif %}
         <th scope="col">Start Position</th>
         <th scope="col">Midline Grabs</th>
         <th scope="col">Score Level</th>
@@ -299,19 +324,24 @@
     </tr>
 </thead>
 {% endmacro %}
-{% macro teamSuperScout(match) %}
+{% macro teamSuperScout(match, custom) %}
 <form method="POST" action="/superScout/submit">
 <div class="row">
 <table class="table table-bordered table-hover">
+    {% if custom %}
+    <label for="matchNumber">Match Number:</label>
+    <input type="number" class="form-control mb-2" name="matchNumber" id="matchNumber" value="-1">
+    {% else %}
     <input type="text" readonly class="form-control-plaintext d-none" name="matchNumber" id="matchNumber" value="{{match.matchNumber}}">
-    {{ superScoutHeaders() }}
+    {% endif %}
+    {{ superScoutHeaders(custom) }}
     <tbody>
-        {{superScoutHelper(match.red1, true, 1, "red1") }}
-        {{superScoutHelper(match.red2, true, 2, "red2") }}
-        {{superScoutHelper(match.red3, true, 3, "red3") }}
-        {{superScoutHelper(match.blue1, false, 1, "blue1") }}
-        {{superScoutHelper(match.blue2, false, 2, "blue2") }}
-        {{superScoutHelper(match.blue3, false, 3, "blue3") }}
+        {{superScoutHelper(match.red1, true, 1, "red1", custom) }}
+        {{superScoutHelper(match.red2, true, 2, "red2", custom) }}
+        {{superScoutHelper(match.red3, true, 3, "red3", custom) }}
+        {{superScoutHelper(match.blue1, false, 1, "blue1", custom) }}
+        {{superScoutHelper(match.blue2, false, 2, "blue2", custom) }}
+        {{superScoutHelper(match.blue3, false, 3, "blue3", custom) }}
     </tbody>
     </div>
 </table>
@@ -322,36 +352,68 @@
 {% endmacro %}
 {% macro matchSuperScoutData(match) %}
 <tr>
-    <th scope="row" class="text-center">{{ match.matchNumber }}</th>
-    <td class="text-center">{{ match.startPosition }}</th>
+    <th scope="row" class="text-center align-middle">{{ match.matchNumber }}</th>
+    <td class="text-center align-middle">{{ match.startPosition }}</th>
     {% if match.midlineGrab == "1" %}
-    <td class="table-success text-center">
+    <td class="table-success text-center align-middle">
         <i class="bi bi-check"></i>
     </td>
     {% elif match.midlineGrab == "-1" %}
-    <td class="table-danger text-center">
+    <td class="table-danger text-center align-middle">
         <i class="bi bi-x"></i>
     </td>
     {% else %}
-    <td class="table-secondary text-center">
+    <td class="table-secondary text-center align-middle">
         N/A
     </td>
     {% endif %}
-    <td scope="col" class="text-center">{{ match.scoreLevel }}</th>
-    <td scope="col" class="text-center">{{ match.intake }}</th>
+    <td scope="col" class="text-center align-middle">{{ match.scoreLevel }}</th>
+    <td scope="col" class="text-center align-middle">{{ match.intake }}</th>
     {% if match.broken == 0 %}
-    <td class="table-success text-center">
+    <td class="table-success text-center  align-middle">
         <i class="bi bi-check"></i>
     </td>
     {% else %}
-    <td class="table-danger text-center">
+    <td class="table-danger text-center  align-middle">
         BROKE
     </td>
     {% endif %}
-    <td scope="col" style="width: 10%" class="text-center">{{ match.tippy }}</th>
-    <td scope="col" style="width: 10%" class="text-center">{{ match.pushable }}</th>
+    {% if match.tippy == "YS" %}
+    <td scope="col" style="width: 10%" class="text-center table-danger">
+        Yes, stopping
+    </td>
+    {% elif match.tippy == "YH" %}
+    <td scope="col" style="width: 10%" class="text-center table-danger">
+        Yes, hit
+    </td>
+    {% else %}
+    <td scope="col" style="width: 10%" class="text-center table-success">
+        No
+    </td>
+    {% endif %}
+    <td scope="col" style="width: 10%" class="text-center align-middle 
+    {% if match.pushable == 'Yes' %}
+    table-danger
+    {% elif match.pushable == 'No' %}
+    table-success
+    {% else %}
+    table-info
+    {% endif %}
+    ">{{ match.pushable }}</th>
     <td scope="col">{{ match.notes }}</th>
-    <td scope="col" class="text-center">{{ match.overall }}</th>
+    <td scope="col" class="text-center align-middle
+    {% if match.overall == 'BAD' %}
+    table-danger
+    {% elif match.overall == 'BID' %}
+    table-warning
+    {% elif match.overall == 'MID' %}
+    table-secondary
+    {% elif match.overall == 'MOOD' %}
+    table-info
+    {% else %}
+    table-primary
+    {% endif %}
+    ">{{ match.overall }}</th>
 </tr>
 {% endmacro %}
 {% macro teamSuperScoutPreview(team, matchesPlayed) %}

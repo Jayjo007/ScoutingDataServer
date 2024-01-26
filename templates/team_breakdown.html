@@ -8,16 +8,24 @@
       {{navBar()}}
       
       <div class="container">
-        <div class="row text-center">
+        <div class="row text-center d-print-none">
                 <h3>Team {{ team.teamNumber }}: {{ team.teamName }} Breakdown <a href="/teamDataInspector" class="btn btn-primary m-1 d-print-none">View another team</a></h3>
         </div>
-        <div class="row">
+        <div class="row align-middle">
+          <div class="row d-print-flex d-none">
+            <div class="col-3">
+              {{ pitScoutData(team, team.getPitScoutData()) }}
+            </div>
+            <div class="col-9 text-end align-middle">
+              <h3>Team {{ team.teamNumber }}: {{ team.teamName }} Breakdown</h3>
+            </div>
+          </div>
           <div class="row">
             <div class="col-9 d-print-table-row">
               {{ teamPreview("Match Data", team, currentEventMatches) }}
             </div>
             {% if team.hasPitScoutData() %}
-            <div class="col-3 d-print-table-row">
+            <div class="col-3 d-print-none">
               {{ pitScoutData(team, team.getPitScoutData()) }}
             </div>
             {% endif %}
