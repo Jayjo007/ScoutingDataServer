@@ -9,6 +9,8 @@
         function(data) { }); return false; }); }); </script> 
     <script type=text/javascript> $(function() { $("#downloadTeamListButton").click(function (event) { $.getJSON('/downloadTeamList', { },
       function(data) { }); return false; }); }); </script> 
+      <script type=text/javascript> $(function() { $("#downloadMatchBreakdownsButton").click(function (event) { $.getJSON('/settings/downloadMatchBreakdowns', { },
+        function(data) { }); return false; }); }); </script> 
 </head>
 <body>
     <div class="jumbotron text-center">
@@ -42,7 +44,8 @@
             {% if ping %}
             <button id="importTeamsButton" class="btn btn-primary m-1">Import Team Names</button> <br/>
             <button id="downloadMatchScheduleButton" class="btn btn-primary m-1">Download Match Schedule</button> <br/>
-            <button id="downloadTeamListButton" class="btn btn-primary m-1">Download Team List</button>
+            <button id="downloadTeamListButton" class="btn btn-primary m-1">Download Team List</button> <br/>
+            <button id="downloadMatchBreakdownsButton" class="btn btn-primary m-1">Download Match Breakdowns (WIP/NF)</button> <br/>
             {% else %}
             <p>Please connect to internet to use this function</p>
             {% endif %}

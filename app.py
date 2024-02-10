@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from wtforms import Form, StringField, validators, ValidationError
 from dotenv import load_dotenv
@@ -94,7 +94,7 @@ def matchDataInspector():
 
 @app.route("/teamBreakdown/<team>")
 def getTeamBreakdown(team):
-    currentEventTeamMatches = MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=team)
+    currentEventTeamMatches = MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=team).order_by(MatchData.matchNumber)
     teamrecord = TeamRecord.query.filter_by(teamNumber=team).first()
     teamPitInfo = PitScoutRecord.query.filter_by(teamNumber=team, eventKey=getActiveEventKey()).first()
     teamSuperScoutInfo = SuperScoutRecord.query.filter_by(teamNumber = team, eventKey = getActiveEventKey())
@@ -103,12 +103,12 @@ def getTeamBreakdown(team):
 @app.route("/matchPreview/<matchNo>/<matchLevel>")
 def getMatchPreview(matchNo, matchLevel):
     match = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchNumber=matchNo, matchLevel=matchLevel).first_or_404()
-    red1Matches = MatchData.query.filter_by(teamNumber=match.red1, eventKey=getActiveEventKey())
-    red2Matches = MatchData.query.filter_by(teamNumber=match.red2, eventKey=getActiveEventKey())
-    red3Matches = MatchData.query.filter_by(teamNumber=match.red3, eventKey=getActiveEventKey())
-    blue1Matches = MatchData.query.filter_by(teamNumber=match.blue1, eventKey=getActiveEventKey())
-    blue2Matches = MatchData.query.filter_by(teamNumber=match.blue2, eventKey=getActiveEventKey())
-    blue3Matches = MatchData.query.filter_by(teamNumber=match.blue3, eventKey=getActiveEventKey())
+    red1Matches = MatchData.query.filter_by(teamNumber=match.red1, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    red2Matches = MatchData.query.filter_by(teamNumber=match.red2, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    red3Matches = MatchData.query.filter_by(teamNumber=match.red3, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    blue1Matches = MatchData.query.filter_by(teamNumber=match.blue1, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    blue2Matches = MatchData.query.filter_by(teamNumber=match.blue2, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    blue3Matches = MatchData.query.filter_by(teamNumber=match.blue3, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
     red1record = TeamRecord.query.filter_by(teamNumber=match.red1).first()
     red2record = TeamRecord.query.filter_by(teamNumber=match.red2).first()
     red3record = TeamRecord.query.filter_by(teamNumber=match.red3).first()
@@ -229,6 +229,57 @@ def exportEventDataToCSV():
         download_name=getActiveEventKey()+"DataDump.csv",
         as_attachment=True)
 
+@app.route("/exportMatchSchedule")
+def exportMatchScheduleToCSV():
+    # with open("outputs/Adjacency.csv") as fp:
+    #     csv = fp.read()
+    with open('outputs/matchSchedule.csv', 'w', encoding="utf-8", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(["Event Key",  
+                         "Match #", 
+                         "red1", 
+                         "red2", 
+                         "red3", 
+                         "blue1", 
+                         "blue2", 
+                         "blue3"])
+        scoutingData = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel())
+        for match in scoutingData:
+            writer.writerow([match.eventKey, match.matchNumber, match.red1, match.red2, match.red3, match.blue1, match.blue2, match.blue3])
+    return send_file(
+        'outputs/MatchSchedule.csv',
+        mimetype="text/csv",
+        download_name=getActiveEventKey()+"MatchSchedule.csv",
+        as_attachment=True)
+
+@app.route("/importTabletData")
+def importTabletData():
+    with open('imports/app_database-TeamMatchScout.csv', newline='') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',')
+        for row in csvreader:
+            print("length:" + str(len(row)))
+            if (len(row) >= 12 and row[1] == getActiveEventKey() and row[0] != "team_number"):
+                data = dict()
+                data["teamNumber"] = row[0]
+                data["event"] = row[1]
+                data["matchNumber"] = row[2]
+                data["matchLevel"] = getCurrentMatchLevel()
+                data["autoSpeaker"] = row[3]
+                data["autoAmp"] = row[4]
+                data["autoLeave"] = row[5]
+                data["teleSpeaker"] = row[6]
+                data["teleAmp"] = row[7]
+                data["trap"] = row[8]
+                data["climbStatus"] = row[9]
+                data["defense"] = row[10]
+                data["tablet"] = row[11]
+                data["scouter"] = row[12]
+                matchData = MatchData(data)
+                db.session.add(matchData)
+                db.session.commit()
+    return "None"
+    
+
 @app.route("/superScout")
 def superScoutLanding():
     form = SelectSuperScoutForm()
@@ -269,7 +320,7 @@ def superScoutCustom():
     teams = []
     for team in teamsAtEvent:
         teams.append(TeamRecord.query.filter_by(teamNumber=team.teamNumber).first())
-    if request.method == 'GEt' and form.validate():
+    if request.method == 'GET' and form.validate():
         match = MatchSchedule(getActiveEventKey(),-1,"Custom", form.red1.data, form.red2.data, form.red3.data, form.blue1.data, form.blue2.data, form.blue3.data)
         red1Match = MatchData.query.filter_by(teamNumber=match.red1, eventKey=getActiveEventKey())
         red2Match = MatchData.query.filter_by(teamNumber=match.red2, eventKey=getActiveEventKey())
@@ -287,6 +338,26 @@ def superScoutCustom():
         return render_template("super_scout.html", match=match, red1=red1Match, red2=red2Match, red3=red3Match, blue1=blue1Match, blue2=blue2Match, blue3=blue3Match, tn=tn)
     else:
         return render_template("custom_superscout_select.html", eventKey=getActiveEventKey(), form=form, teams=teams)
+
+@app.route("/settings/downloadMatchBreakdowns")
+def downloadMatchBreakdowns():
+    print("Downloading match breakdowns for event " + getActiveEventKey())
+    return "None"
+
+@app.route("/app/downloadActiveMatchSchedule")
+def downloadMatchScheduleToApp():
+    matches = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel()).all()
+    data = [ row.as_dict() for row in matches ]
+    return jsonify(response = data, status=200, mimetype="application/json")
+
+@app.route("/app/uploadMatches")
+def uploadMatches(methods = ["POST"]):
+    if(request.method == "POST"):
+        payload = urllib.parse.unquote(request.get_data())
+        json_object = json.loads(payload)
+        db.session.add(MatchData(json_object))
+        db.session.commit()
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
 
 def processSuperScout(request, dsN):
     teamNumber = request.form.get(dsN+"TeamNumber")
@@ -476,9 +547,9 @@ class TeamRecord(db.Model):
             for match in MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).all():
                 averages.addAverage(match)
             averages.climb*=100
-            averages.climb = str(averages.climb)+"%"
+            #averages.climb = str(averages.climb)+"%"
             averages.auto_leave*=100
-            averages.auto_leave = str(averages.auto_leave)+"%"
+            #averages.auto_leave = str(averages.auto_leave)+"%"
             return averages
         else:
             return None
@@ -504,6 +575,7 @@ class MatchSchedule(db.Model):
     blue1 = db.Column(db.String(50))
     blue2 = db.Column(db.String(50))
     blue3 = db.Column(db.String(50))
+
     def __init__(self, eventKey, matchNumber, matchLevel, red1, red2, red3, blue1, blue2, blue3):
         self.eventKey = eventKey
         self.matchNumber = matchNumber
@@ -514,6 +586,10 @@ class MatchSchedule(db.Model):
         self.blue1 = blue1
         self.blue2 = blue2
         self.blue3 = blue3
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    
     def checkIsScouted(self):
         if MatchData.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel).count() > 0:
             return True

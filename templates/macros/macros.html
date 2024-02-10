@@ -40,6 +40,49 @@
     <td scope="row" class="text-center table-secondary">N/A</td>
     {% endif %}
 {% endmacro %}
+{% macro averages(match, team) %}
+    {% if team != None %}
+    <th scope="row" class="text-end">{{match.matchLevel}}</th>
+    <th scope="row" class="text-center"><a href="/teamMatchBreakdown/{{team}}/{{match.eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></th>
+    {% endif %}
+    <td scope="row" class="text-center">{{match.auto_speaker|round(1, 'floor')}}</td>
+    <td scope="row" class="text-center">{{match.auto_amp|round(1, 'floor')}}</td>
+    {% if match.auto_leave == 1 %}
+    <td class="table-success text-center">
+        <i class="bi bi-check"></i>
+    </td>
+    {% elif match.auto_leave == 0 %}
+    <td class="table-danger text-center">
+        <i class="bi bi-x"></i>
+    </td>
+    {% else %}
+    <td scope="row" class="text-center">{{match.auto_leave|round(1, 'floor')}}%</td>
+    {% endif %}
+    <td scope="row" class="text-center">{{match.tele_speaker|round(1, 'floor')}}</td>
+    <td scope="row" class="text-center">{{match.tele_amp|round(1, 'floor')}}</td>
+    <td scope="row" class="text-center">{{match.trap|round(1, 'floor')}}</td>
+    {% if match.climb == 0 %}
+    <td scope="row" class="text-center table-secondary">N/A</td>
+    {% elif match.climb == -1 %}
+    <td scope="row" class="text-center table-danger">FAIL</td>
+    {% elif match.climb == 1 %}
+    <td scope="row" class="text-center table-success">CLIMBED</td>
+    {% else %}
+    <td scope="row" class="text-center table-success">{{match.climb|round(1, 'floor')}}%</td>
+    {% endif %}
+    {% if match.defense == 0 %}
+    <td scope="row" class="text-center">None</td>
+    {% elif match.defense == 1 %}
+    <td scope="row" class="text-center">Meh</td>
+    {% elif match.defense == 2 %}
+    <td scope="row" class="text-center">Good</td>
+    {% elif match.defense == 3 %}
+    <td scope="row" class="text-center">Epic</td>
+    {% else %}
+    <td scope="row" class="text-center table-secondary">N/A</td>
+    {% endif %}
+{% endmacro %}
+
 {% macro gameSpecificHeaders() %} 
     <tr>
 
@@ -81,7 +124,7 @@
                     Averages:
                 </th>
                 {% if team.getAverages() != None %}
-                {{matchData(team.getAverages(), None)}}
+                {{averages(team.getAverages(), None)}}
                 {% else %}
                 <td colspan="9" class="text-center table-warning">
                     No averages to report
@@ -274,7 +317,7 @@
         </select>
     </td>
     <td>
-        <input type="text" class="form-control" name="{{dsId}}Notes" id="{{dsId}}Notes" aria-describedby="notes" placeholder="Notes">
+        <input type="text" autocomplete="off" class="form-control" name="{{dsId}}Notes" id="{{dsId}}Notes" aria-describedby="notes" placeholder="Notes">
     </td>
     <td>
         <select name="{{dsId}}Overall" id="{{dsId}}Overall" class="form-select" aria-label="overall">
