@@ -19,9 +19,9 @@
     <td scope="row" class="text-center">{{match.tele_speaker}}</td>
     <td scope="row" class="text-center">{{match.tele_amp}}</td>
     <td scope="row" class="text-center">{{match.trap}}</td>
-    {% if match.climb == -1 %}
+    {% if match.climb == 0 %}
     <td scope="row" class="text-center table-secondary">N/A</td>
-    {% elif match.climb == 0 %}
+    {% elif match.climb == -1 %}
     <td scope="row" class="text-center table-danger">FAIL</td>
     {% elif match.climb == 1 %}
     <td scope="row" class="text-center table-success">CLIMBED</td>
@@ -41,48 +41,24 @@
     {% endif %}
 {% endmacro %}
 {% macro averages(match, team) %}
-    {% if team != None %}
-    <th scope="row" class="text-end">{{match.matchLevel}}</th>
-    <th scope="row" class="text-center"><a href="/teamMatchBreakdown/{{team}}/{{match.eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></th>
-    {% endif %}
     <td scope="row" class="text-center">{{match.auto_speaker|round(1, 'floor')}}</td>
     <td scope="row" class="text-center">{{match.auto_amp|round(1, 'floor')}}</td>
-    {% if match.auto_leave == 1 %}
-    <td class="table-success text-center">
-        <i class="bi bi-check"></i>
-    </td>
-    {% elif match.auto_leave == 0 %}
-    <td class="table-danger text-center">
-        <i class="bi bi-x"></i>
-    </td>
+    {% if team != None %}
+    <td scope="row" class="text-center">{{match.auto_leave|round|int}}%</td>
     {% else %}
-    <td scope="row" class="text-center">{{match.auto_leave|round(1, 'floor')}}%</td>
+    <td scope="row" class="text-center">{{match.auto_leave|round(1, 'floor')}}</td>
     {% endif %}
     <td scope="row" class="text-center">{{match.tele_speaker|round(1, 'floor')}}</td>
     <td scope="row" class="text-center">{{match.tele_amp|round(1, 'floor')}}</td>
     <td scope="row" class="text-center">{{match.trap|round(1, 'floor')}}</td>
-    {% if match.climb == 0 %}
+    {% if team != None %}
+    <td scope="row" class="text-center">{{match.climb|round|int}}%</td>
     <td scope="row" class="text-center table-secondary">N/A</td>
-    {% elif match.climb == -1 %}
-    <td scope="row" class="text-center table-danger">FAIL</td>
-    {% elif match.climb == 1 %}
-    <td scope="row" class="text-center table-success">CLIMBED</td>
     {% else %}
-    <td scope="row" class="text-center table-success">{{match.climb|round(1, 'floor')}}%</td>
-    {% endif %}
-    {% if match.defense == 0 %}
-    <td scope="row" class="text-center">None</td>
-    {% elif match.defense == 1 %}
-    <td scope="row" class="text-center">Meh</td>
-    {% elif match.defense == 2 %}
-    <td scope="row" class="text-center">Good</td>
-    {% elif match.defense == 3 %}
-    <td scope="row" class="text-center">Epic</td>
-    {% else %}
-    <td scope="row" class="text-center table-secondary">N/A</td>
+    <td scope="row" class="text-center">{{match.climb|round(1, 'floor')}}</td>
+    <td scope="row" class="text-center">{{ match.scoreMatch()|round(1, 'floor') }}</td>
     {% endif %}
 {% endmacro %}
-
 {% macro gameSpecificHeaders() %} 
     <tr>
 
@@ -124,13 +100,84 @@
                     Averages:
                 </th>
                 {% if team.getAverages() != None %}
-                {{averages(team.getAverages(), None)}}
+                {{ averages(team.getAverages(), team) }}
                 {% else %}
                 <td colspan="9" class="text-center table-warning">
                     No averages to report
                 </td>
                 {% endif %}
             </tr>
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+{% macro predictionHelper(team, redAlliance, station) %}
+<tr>
+    {% if redAlliance == True %}
+    <th scope="row" class="table-danger text-end">
+        Red {{station}}:
+    {% else %}
+    <th scope="row" class="table-primary text-end">
+        Blue {{station}}:
+    {% endif %}
+    </th>
+    <th scope="row" class="text-center"><a href="/teamBreakdown/{{team.teamNumber}}">{{team.teamNumber}}</a></th>
+    {% if team.getAverages() != None %}
+    {{averages(team.getAverages(), team)}}
+    {% else %}
+    <td colspan="9" class="text-center table-warning">
+        No averages to report
+    </td>
+    {% endif %}
+</tr>
+{% endmacro %}
+{% macro predictionHelperAlliance(tN, redAlliance) %}
+<tr>
+    {% if redAlliance %}
+    <th scope="row" colspan="2" class="text-center table-danger">Red Alliance</th>
+    {{ averages(tN.getRedAllianceAverage(), None)}}
+    {% else %}
+    <th scope="row" colspan="2" class="text-center table-primary">Blue Alliance</th>
+    {{ averages(tN.getBlueAllianceAverage(), None )}}
+    {% endif %}
+    
+</tr>
+{% endmacro %}
+{% macro matchPrediction(tN) %}
+<div style="page-break-inside:avoid; page-break-after:always">
+    <h4 class="text-center">Match Prediction</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>  
+                <tr>
+                    <th scope="col" rowspan="2" class="text-center align-middle">Driver</br>Station</th>
+                    <th scope="col" rowspan="2" class="text-center" style="width: 5%">Team #</th>
+                    <th scope="col" colspan="3" class="text-center">Auto</th>
+                    <th scope="col" colspan="2" class="text-center">Teleop</th>
+                    <th scope="col" colspan="2" class="text-center">Endgame</th> 
+                    <th scope="col" colspan="1" class="text-center">Misc.</th>
+                </tr>
+                <tr>
+                    <th scope="col" class="text-center">Speaker</th>
+                    <th scope="col" class="text-center">Amp</th>
+                    <th scope="col" class="text-center">Leave</th>
+                    <th scope="col" class="text-center">Speaker</th>
+                    <th scope="col" class="text-center">Amp</th>
+                    <th scope="col" class="text-center">Trap</th>
+                    <th scope="col" class="text-center">Climb</th>
+                    <th scope="col" class="text-center">Total Score</th>
+                </tr>
+            </tr>
+        </thead>
+        <tbody>
+            {{predictionHelper(tN.red1, True, 1)}}
+            {{predictionHelper(tN.red2, True, 2)}}
+            {{predictionHelper(tN.red3, True, 3)}}
+            {{predictionHelper(tN.blue1, False, 1)}}
+            {{predictionHelper(tN.blue2, False, 2)}}
+            {{predictionHelper(tN.blue3, False, 3)}}
+            {{predictionHelperAlliance(tN, True)}}
+            {{predictionHelperAlliance(tN, False)}}
         </tbody>
     </table>
 </div>

@@ -100,8 +100,8 @@ def getTeamBreakdown(team):
     teamSuperScoutInfo = SuperScoutRecord.query.filter_by(teamNumber = team, eventKey = getActiveEventKey())
     return render_template("team_breakdown.html", team=teamrecord, currentEventMatches=currentEventTeamMatches, pitInfo=teamPitInfo, currentEventSuperScout=teamSuperScoutInfo)
 
-@app.route("/matchPreview/<matchNo>/<matchLevel>")
-def getMatchPreview(matchNo, matchLevel):
+@app.route("/matchPreview/<matchNo>/<matchLevel>/detailed")
+def getMatchPreviewDetailed(matchNo, matchLevel):
     match = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchNumber=matchNo, matchLevel=matchLevel).first_or_404()
     red1Matches = MatchData.query.filter_by(teamNumber=match.red1, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
     red2Matches = MatchData.query.filter_by(teamNumber=match.red2, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
@@ -116,7 +116,20 @@ def getMatchPreview(matchNo, matchLevel):
     blue2record = TeamRecord.query.filter_by(teamNumber=match.blue2).first()
     blue3record = TeamRecord.query.filter_by(teamNumber=match.blue3).first()
     tn = TeamNames(red1record, red2record, red3record, blue1record, blue2record, blue3record)
-    return render_template("match_preview.html", match=match, red1=red1Matches, red2=red2Matches, red3=red3Matches, blue1=blue1Matches, blue2=blue2Matches, blue3=blue3Matches, tn=tn)
+    return render_template("match_preview.html", match=match, red1=red1Matches, red2=red2Matches, red3=red3Matches, blue1=blue1Matches, blue2=blue2Matches, blue3=blue3Matches, tn=tn, simple = False)
+
+@app.route("/matchPreview/<matchNo>/<matchLevel>/simple")
+def getMatchPreviewSimple(matchNo, matchLevel):
+    match = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchNumber=matchNo, matchLevel=matchLevel).first_or_404()
+    red1record = TeamRecord.query.filter_by(teamNumber=match.red1).first()
+    red2record = TeamRecord.query.filter_by(teamNumber=match.red2).first()
+    red3record = TeamRecord.query.filter_by(teamNumber=match.red3).first()
+    blue1record = TeamRecord.query.filter_by(teamNumber=match.blue1).first()
+    blue2record = TeamRecord.query.filter_by(teamNumber=match.blue2).first()
+    blue3record = TeamRecord.query.filter_by(teamNumber=match.blue3).first()
+    tn = TeamNames(red1record, red2record, red3record, blue1record, blue2record, blue3record)
+    return render_template("match_preview_simple.html", match=match, red1=[], red2=[], red3=[], blue1=[], blue2=[], blue3=[], tn=tn, simple = True)
+
 
 @app.route("/matchBreakdown/<matchNo>/<matchLevel>")
 def getMatchBreakdown(matchNo, matchLevel):
@@ -389,6 +402,19 @@ def validate_preview(form, field):
 def validate_matchNumber(form, field):
     if int(field.data) not in getMatchNumbers():
         raise ValidationError("Match Number Out Of Bounds")
+    
+def addAllianceAverages(team1, team2, team3):
+    totalAverages = MatchAverages(None)
+    totalAverages.auto_speaker = team1.auto_speaker + team2.auto_speaker + team3.auto_speaker
+    totalAverages.auto_amp = team1.auto_amp + team2.auto_amp + team3.auto_amp
+    totalAverages.tele_speaker = team1.tele_speaker + team2.tele_speaker + team3.tele_speaker
+    totalAverages.tele_amp = team1.tele_amp + team2.tele_amp + team3.tele_amp
+    totalAverages.trap = team1.tele_amp + team2.tele_amp + team3.tele_amp
+    if (totalAverages.trap > 3):
+        totalAverages.trap = 3
+    totalAverages.climb = (team1.climb + team2.climb + team3.climb) / 100
+    totalAverages.auto_leave = (team1.auto_leave + team2.auto_leave + team3.auto_leave) / 100
+    return totalAverages
 
 
 class CustomMatchForm(Form):
@@ -412,6 +438,30 @@ class TeamNames():
         self.blue1 = blue1
         self.blue2 = blue2
         self.blue3 = blue3
+    def getRedAllianceAverage(self):
+        red1Averages = self.red1.getAverages()
+        if (red1Averages == None):
+            red1Averages = MatchAverages(self.red1.teamNumber)
+        red2Averages = self.red2.getAverages()
+        if (red2Averages == None):
+            red2Averages = MatchAverages(self.red2.teamNumber)
+        red3Averages = self.red3.getAverages()
+        if (red3Averages == None):
+            red3Averages = MatchAverages(self.red3.teamNumber)
+        #todo: this i dont feel like doing rn
+        return addAllianceAverages(red1Averages, red2Averages, red3Averages)
+    def getBlueAllianceAverage(self):
+        blue1Averages = self.blue1.getAverages()
+        if (blue1Averages == None):
+            blue1Averages = MatchAverages(self.blue1.teamNumber)
+        blue2Averages = self.blue2.getAverages()
+        if (blue2Averages == None):
+            blue2Averages = MatchAverages(self.blue2.teamNumber)
+        blue3Averages = self.blue3.getAverages()
+        if (blue3Averages == None):
+            blue3Averages = MatchAverages(self.blue3.teamNumber)
+        #todo: this i dont feel like doing rn
+        return addAllianceAverages(blue1Averages, blue2Averages, blue3Averages)
 
 class PitScoutRecord(db.Model):
     __tablename__ = 'pitdata'
@@ -635,6 +685,20 @@ class TeamAtEvent(db.Model):
         self.teamNumber = teamNumber
         self.eventKey = eventKey
 
+class DataValidation(db.Model):
+    __tablename__ = 'data_validation'
+    eventKey = db.Column(db.String(15), primary_key=True)
+    matchNumber = db.Column(db.Integer(), primary_key=True)
+    matchLevel = db.Column(db.String(50), primary_key=True)
+    auto_speaker = db.Column(db.Integer())
+    auto_amp = db.Column(db.Integer())
+    tele_speaker = db.Column(db.Integer())
+    tele_amp = db.Column(db.Integer())
+    trap = db.Column(db.Integer())
+    climb = db.Column(db.Integer())
+    defense = db.Column(db.Integer())
+    auto_leave = db.Column(db.Integer())
+
 class MatchAverages():
     def __init__(self, teamNumber):
         self.teamNumber = teamNumber
@@ -657,7 +721,7 @@ class MatchAverages():
         if (matchData.climb > 0):
             self.climb=(self.climb*self.climbAttempts+1)/(self.climbAttempts+1)
             self.climbAttempts+=1
-        elif (matchData.climb == 0):
+        elif (matchData.climb == -1):
             self.climb=(self.climb*self.climbAttempts)/(self.climbAttempts+1)
             self.climbAttempts+=1
         if (matchData.auto_leave != 0):
@@ -665,7 +729,16 @@ class MatchAverages():
         else:
             self.auto_leave=(self.auto_leave*self.count)/(self.count+1)
         self.count += 1
-        
+    def scoreMatch(self):
+        score = 0
+        score += self.auto_speaker * 5
+        score += self.auto_amp * 2
+        score += self.tele_speaker * 2
+        score += self.auto_amp
+        score += self.trap * 5
+        score += self.climb * 3
+        score += self.auto_leave * 2
+        return score
 
 def getEventTeams():
     teams = set()
