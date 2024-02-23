@@ -41,9 +41,9 @@ def submitMatch():
             json_object = json.loads(payload[10:])
             db.session.add(MatchData(json_object))
             db.session.commit()
-        return show_match_submission()
+        return render_template("match_data_import.html")
     else:
-        return show_match_submission()
+        return render_template("match_data_import.html")
 
 @app.route("/submitPitScout", methods=['GET', 'POST'])
 def submitPitScout():
@@ -302,21 +302,24 @@ def superScoutLanding():
 def superScouting():
     matchNumber = request.args.get("matchNumber")
     custom = request.args.get("custom")
+    alliance = request.args.get("alliance")
     matchRecord = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel(), matchNumber=matchNumber).first()
-    return render_template("super_scout.html", match=matchRecord, custom=custom)
+    return render_template("super_scout.html", match=matchRecord, custom=custom, alliance=alliance)
 
 @app.route("/superScout/submit", methods=["POST"])
 def submitSuperScout():
     if request.method == 'POST':
         #payload = request.get_data()
-        processSuperScout(request, "red1")
-        processSuperScout(request, "red2")
-        processSuperScout(request, "red3")
-        processSuperScout(request, "blue1")
-        processSuperScout(request, "blue2")
-        processSuperScout(request, "blue3")
+        if request.form.get("alliance") != "2":
+            processSuperScout(request, "red1")
+            processSuperScout(request, "red2")
+            processSuperScout(request, "red3")
+        if request.form.get("alliance") != "1":
+            processSuperScout(request, "blue1")
+            processSuperScout(request, "blue2")
+            processSuperScout(request, "blue3")
         if (int(request.form.get("matchNumber")) < MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel()).count()):
-            return render_template("redirect_superscout.html", matchNumber=int(request.form.get("matchNumber"))+1)
+            return render_template("redirect_superscout.html", matchNumber=int(request.form.get("matchNumber"))+1, alliance=request.form.get("alliance"))
         return render_template("main_screen.html")
 
 
@@ -325,32 +328,6 @@ def superScoutingCustom():
     custom = True
     matchRecord = MatchSchedule(getActiveEventKey(), "Custom", getCurrentMatchLevel(), -1, -1, -1, -1, -1, -1)
     return render_template("super_scout.html", match=matchRecord, custom=custom)
-
-@app.route("/superScout/scout/customDEPRECATE")
-def superScoutCustom():
-    form = CustomMatchForm(request.form)
-    teamsAtEvent = TeamAtEvent.query.filter_by(eventKey=getActiveEventKey()).order_by(TeamAtEvent.teamNumber)
-    teams = []
-    for team in teamsAtEvent:
-        teams.append(TeamRecord.query.filter_by(teamNumber=team.teamNumber).first())
-    if request.method == 'GET' and form.validate():
-        match = MatchSchedule(getActiveEventKey(),-1,"Custom", form.red1.data, form.red2.data, form.red3.data, form.blue1.data, form.blue2.data, form.blue3.data)
-        red1Match = MatchData.query.filter_by(teamNumber=match.red1, eventKey=getActiveEventKey())
-        red2Match = MatchData.query.filter_by(teamNumber=match.red2, eventKey=getActiveEventKey())
-        red3Match = MatchData.query.filter_by(teamNumber=match.red3, eventKey=getActiveEventKey())
-        blue1Match = MatchData.query.filter_by(teamNumber=match.blue1, eventKey=getActiveEventKey())
-        blue2Match = MatchData.query.filter_by(teamNumber=match.blue2, eventKey=getActiveEventKey())
-        blue3Match = MatchData.query.filter_by(teamNumber=match.blue3, eventKey=getActiveEventKey())
-        red1record = TeamRecord.query.filter_by(teamNumber=match.red1).first()
-        red2record = TeamRecord.query.filter_by(teamNumber=match.red2).first()
-        red3record = TeamRecord.query.filter_by(teamNumber=match.red3).first()
-        blue1record = TeamRecord.query.filter_by(teamNumber=match.blue1).first()
-        blue2record = TeamRecord.query.filter_by(teamNumber=match.blue2).first()
-        blue3record = TeamRecord.query.filter_by(teamNumber=match.blue3).first()
-        tn = TeamNames(red1record, red2record, red3record, blue1record, blue2record, blue3record)
-        return render_template("super_scout.html", match=match, red1=red1Match, red2=red2Match, red3=red3Match, blue1=blue1Match, blue2=blue2Match, blue3=blue3Match, tn=tn)
-    else:
-        return render_template("custom_superscout_select.html", eventKey=getActiveEventKey(), form=form, teams=teams)
 
 @app.route("/settings/downloadMatchBreakdowns")
 def downloadMatchBreakdowns():
@@ -391,9 +368,7 @@ def processSuperScout(request, dsN):
     record.overall = request.form.get(dsN+"Overall")
     db.session.add(record)
     db.session.commit()
-
-def show_match_submission():
-    return render_template("match_data_import.html")
+    
 
 def validate_preview(form, field):
     if int(field.data) not in getEventTeams():
@@ -690,6 +665,7 @@ class DataValidation(db.Model):
     eventKey = db.Column(db.String(15), primary_key=True)
     matchNumber = db.Column(db.Integer(), primary_key=True)
     matchLevel = db.Column(db.String(50), primary_key=True)
+    alliance = db.Column(db.Integer(), primary_key=True)
     auto_speaker = db.Column(db.Integer())
     auto_amp = db.Column(db.Integer())
     tele_speaker = db.Column(db.Integer())

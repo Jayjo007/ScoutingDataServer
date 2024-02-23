@@ -14,8 +14,17 @@
             <form method="GET" action="superScout/scout">
                 {{ render_field_superscout(matchNumbers) }}<br/>
                 <div class="text-center">
-                    <p><input type=submit value="Super Scout" class="btn btn-primary">
-                </div>
+                  <div class="col">
+                    <select name="alliance" id="alliance" class="form-select form-select-sm" aria-label="Alliance">
+                      <option value="0">Full Match</option>
+                      <option value="1">Red</option>
+                      <option value="2">Blue</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <input type=submit value="Super Scout" class="btn btn-primary">
+                  </div>
+                  </div>
             </form>
           </div>
           <div class="col-sm-6 text-center">

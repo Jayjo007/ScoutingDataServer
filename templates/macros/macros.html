@@ -40,6 +40,53 @@
     <td scope="row" class="text-center table-secondary">N/A</td>
     {% endif %}
 {% endmacro %}
+{% macro matchBreakdownData(match, team, alliance, station) %}
+    {% if alliance == True %}
+    <th scope="row" class="table-danger text-end">
+        Red {{station}}:
+    {% else %}
+    <th scope="row" class="table-primary text-end">
+        Blue {{station}}:
+    {% endif %}
+    </th>
+    <th scope="row" class="text-center"><a href="/teamMatchBreakdown/{{team.teamNumber}}/{{match.eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">{{team.teamNumber}}</a></th>
+    <td scope="row" class="text-center">{{match.auto_speaker}}</td>
+    <td scope="row" class="text-center">{{match.auto_amp}}</td>
+    {% if match.auto_leave == 1 %}
+    <td class="table-success text-center">
+        <i class="bi bi-check"></i>
+    </td>
+    {% elif match.auto_leave == 0 %}
+    <td class="table-danger text-center">
+        <i class="bi bi-x"></i>
+    </td>
+    {% else %}
+    <td scope="row" class="text-center">{{match.auto_leave}}</td>
+    {% endif %}
+    <td scope="row" class="text-center">{{match.tele_speaker}}</td>
+    <td scope="row" class="text-center">{{match.tele_amp}}</td>
+    <td scope="row" class="text-center">{{match.trap}}</td>
+    {% if match.climb == 0 %}
+    <td scope="row" class="text-center table-secondary">N/A</td>
+    {% elif match.climb == -1 %}
+    <td scope="row" class="text-center table-danger">FAIL</td>
+    {% elif match.climb == 1 %}
+    <td scope="row" class="text-center table-success">CLIMBED</td>
+    {% else %}
+    <td scope="row" class="text-center table-success">{{match.climb}}</td>
+    {% endif %}
+    {% if match.defense == 0 %}
+    <td scope="row" class="text-center">None</td>
+    {% elif match.defense == 1 %}
+    <td scope="row" class="text-center">Meh</td>
+    {% elif match.defense == 2 %}
+    <td scope="row" class="text-center">Good</td>
+    {% elif match.defense == 3 %}
+    <td scope="row" class="text-center">Epic</td>
+    {% else %}
+    <td scope="row" class="text-center table-secondary">N/A</td>
+    {% endif %}
+{% endmacro %}
 {% macro averages(match, team) %}
     <td scope="row" class="text-center">{{match.auto_speaker|round(1, 'floor')}}</td>
     <td scope="row" class="text-center">{{match.auto_amp|round(1, 'floor')}}</td>
@@ -297,227 +344,4 @@
     </tbody>
 </table>
 {% endmacro %}
-{% macro superScoutHelper(team, red, dsN, dsId, custom) %}
-<tr>
-    {% if (red==true) %}
-    <td class="text-end table-danger">
-        Red 
-        {% else %}
-    <td class="text-end table-primary">
-        Blue 
-        {% endif %}
-        {{dsN}}
-    </td>
-    <td class="text-end">
-         
-        {% if custom != True %}
-        <input type="text" readonly class="form-control-plaintext" name="{{dsId}}TeamNumber" id="{{dsId}}TeamNumber" value="{{team}}">
-        {% else %}
-        <input type="text" class="form-control" name="{{dsId}}TeamNumber" id="{{dsId}}TeamNumber" value="" maxlength="4">
-        {% endif %}
-    </td>
-    <td>
-        <select name="{{dsId}}Position" id="{{dsId}}Position" class="form-select" aria-label="Position">
-            <option value="LEFT">Left</option>
-            <option value="CENTER">Center</option>
-            <option value="RIGHT">Right</option>
-        </select>
-    </td>
-    <td>
-        <select name="{{dsId}}Midline" id="{{dsId}}Midline" class="form-select" aria-label="Midline">
-            <option value="0">No Attempt</option>
-            <option value="1">Succeeded</option>
-            <option value="-1">Failed</option>
-        </select>
-    </td>
-    <td>
-        <select name="{{dsId}}ScoreLevel" id="{{dsId}}ScoreLevel" class="form-select" aria-label="Score Level">
-            <option value="None">None</option>
-            <option value="Amp">Amp</option>
-            <option value="Speaker">Speaker</option>
-            <option value="Both">Both</option>
-        </select>
-    </td>
-    <td>
-        <select name="{{dsId}}Intake" id="{{dsId}}Intake" class="form-select" aria-label="Intake">
-            <option value="None">None</option>
-            <option value="Source">Source</option>
-            <option value="Ground">Ground</option>
-            <option value="Both">Both</option>
-        </select>
-    </td>
-    <td class="text-center">
-        <input class="form-control form-check-input" type="checkbox" value="true" name="{{dsId}}Broken" id="{{dsId}}Broken">
-    </td>
-    <td>
-        <select name="{{dsId}}Tippy" id="{{dsId}}Tippy" class="form-select" aria-label="tippy">
-            <option value="NO" style="background-color: lightgreen;">No</option>
-            <option value="YS" style="background-color: #ffcccb;">Yes, when stopping</option>
-            <option value="YH" style="background-color: lightyellow;">Yes, when hit</option>
-        </select>
-    </td>
-    <td>
-        <select name="{{dsId}}Pushable" id="{{dsId}}Pushable" class="form-select" aria-label="pushable">
-            <option value="No" style="background-color: lightgreen;">No</option>
-            <option value="Yes" style="background-color: #ffcccb;">Yes</option>
-            <option value="Pushes others" style="background-color: aqua;">Pushes others</option>
-        </select>
-    </td>
-    <td>
-        <input type="text" autocomplete="off" class="form-control" name="{{dsId}}Notes" id="{{dsId}}Notes" aria-describedby="notes" placeholder="Notes">
-    </td>
-    <td>
-        <select name="{{dsId}}Overall" id="{{dsId}}Overall" class="form-select" aria-label="overall">
-            <option value="BAD" style="background-color: rgb(255, 64, 64);">Bad</option>
-            <option value="BIG" style="background-color: #ffcccb;">Bid</option>
-            <option value="MID" style="background-color: lightyellow;" selected>Mid</option>
-            <option value="MOOD" style="background-color: lightgreen;">Mood</option>
-            <option value="GOOD" style="background-color: aqua;">Good</option>
-        </select>
-    </td>
-</tr>
-{% endmacro %}
-{% macro superScoutPreviewHeaders() %}
-<thead class="thead-light">
-    <tr>
-        <th scope="col" class="text-center">Match #</th>
-        <th scope="col" class="text-center">Start Position</th>
-        <th scope="col" class="text-center">Midline</th>
-        <th scope="col" class="text-center">Score Level</th>
-        <th scope="col" class="text-center">Intake</th>
-        <th scope="col" class="text-center">Broken?</th>
-        <th scope="col" style="width: 10%" class="text-center">Tippy</th>
-        <th scope="col" style="width: 10%" class="text-center">Pushable</th>
-        <th scope="col" class="text-center" style="width: 20%">Notes</th>
-        <th scope="col" class="text-center">Overall</th>
-    </tr> 
-</thead>
-{% endmacro %}
-{% macro superScoutHeaders(custom) %}
-<thead class="thead-light">
-    <tr>  
-        <th scope="col" style="width: 5%">Driver Station</th>
-        {% if custom %}
-        <th scope="col" style="width: 8%">Team #</th>
-        {% else %}
-        <th scope="col" style="width: 5%">Team #</th>
-        {% endif %}
-        <th scope="col">Start Position</th>
-        <th scope="col">Midline Grabs</th>
-        <th scope="col">Score Level</th>
-        <th scope="col">Intake</th>
-        <th scope="col">Broken</th>
-        <th scope="col" style="width: 10%">Tippy</th>
-        <th scope="col" style="width: 10%">Pushable</th>
-        <th scope="col">Notes</th>
-        <th scope="col">Overall</th>
-    </tr>
-</thead>
-{% endmacro %}
-{% macro teamSuperScout(match, custom) %}
-<form method="POST" action="/superScout/submit">
-<div class="row">
-<table class="table table-bordered table-hover">
-    {% if custom %}
-    <label for="matchNumber">Match Number:</label>
-    <input type="number" class="form-control mb-2" name="matchNumber" id="matchNumber" value="-1">
-    {% else %}
-    <input type="text" readonly class="form-control-plaintext d-none" name="matchNumber" id="matchNumber" value="{{match.matchNumber}}">
-    {% endif %}
-    {{ superScoutHeaders(custom) }}
-    <tbody>
-        {{superScoutHelper(match.red1, true, 1, "red1", custom) }}
-        {{superScoutHelper(match.red2, true, 2, "red2", custom) }}
-        {{superScoutHelper(match.red3, true, 3, "red3", custom) }}
-        {{superScoutHelper(match.blue1, false, 1, "blue1", custom) }}
-        {{superScoutHelper(match.blue2, false, 2, "blue2", custom) }}
-        {{superScoutHelper(match.blue3, false, 3, "blue3", custom) }}
-    </tbody>
-    </div>
-</table>
-    <div class="row">
-        <input type="submit" value="Submit Match SuperScout" class="btn btn-primary">
-    </div>
-    </form>
-{% endmacro %}
-{% macro matchSuperScoutData(match) %}
-<tr>
-    <th scope="row" class="text-center align-middle">{{ match.matchNumber }}</th>
-    <td class="text-center align-middle">{{ match.startPosition }}</th>
-    {% if match.midlineGrab == "1" %}
-    <td class="table-success text-center align-middle">
-        <i class="bi bi-check"></i>
-    </td>
-    {% elif match.midlineGrab == "-1" %}
-    <td class="table-danger text-center align-middle">
-        <i class="bi bi-x"></i>
-    </td>
-    {% else %}
-    <td class="table-secondary text-center align-middle">
-        N/A
-    </td>
-    {% endif %}
-    <td scope="col" class="text-center align-middle">{{ match.scoreLevel }}</th>
-    <td scope="col" class="text-center align-middle">{{ match.intake }}</th>
-    {% if match.broken == 0 %}
-    <td class="table-success text-center  align-middle">
-        <i class="bi bi-check"></i>
-    </td>
-    {% else %}
-    <td class="table-danger text-center  align-middle">
-        BROKE
-    </td>
-    {% endif %}
-    {% if match.tippy == "YS" %}
-    <td scope="col" style="width: 10%" class="text-center table-danger">
-        Yes, stopping
-    </td>
-    {% elif match.tippy == "YH" %}
-    <td scope="col" style="width: 10%" class="text-center table-danger">
-        Yes, hit
-    </td>
-    {% else %}
-    <td scope="col" style="width: 10%" class="text-center table-success">
-        No
-    </td>
-    {% endif %}
-    <td scope="col" style="width: 10%" class="text-center align-middle 
-    {% if match.pushable == 'Yes' %}
-    table-danger
-    {% elif match.pushable == 'No' %}
-    table-success
-    {% else %}
-    table-info
-    {% endif %}
-    ">{{ match.pushable }}</th>
-    <td scope="col">{{ match.notes }}</th>
-    <td scope="col" class="text-center align-middle
-    {% if match.overall == 'BAD' %}
-    table-danger
-    {% elif match.overall == 'BID' %}
-    table-warning
-    {% elif match.overall == 'MID' %}
-    table-secondary
-    {% elif match.overall == 'MOOD' %}
-    table-info
-    {% else %}
-    table-primary
-    {% endif %}
-    ">{{ match.overall }}</th>
-</tr>
-{% endmacro %}
-{% macro teamSuperScoutPreview(team, matchesPlayed) %}
-<div style="page-break-inside:avoid;">
-    <h4>{{ team.teamNumber }} - {{ team.teamName }} SuperScout Data</h4>
-    <table class="table table-bordered">
-        {{ superScoutPreviewHeaders() }}
-        <tbody>
-            {% for match in matchesPlayed %}
-            <tr>
-                {{ matchSuperScoutData(match) }}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% endmacro %}
+

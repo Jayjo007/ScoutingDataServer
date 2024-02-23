@@ -1,5 +1,5 @@
 {% from 'macros/sitewide.html' import htmlHead, navBar %}
-{% from 'macros/macros.html' import teamSuperScout %}
+{% from 'macros/superscoutmacros.html' import teamSuperScout %}
 <!DOCTYPE html> 
 <head> 
   {{ htmlHead() }}    
@@ -13,7 +13,7 @@
         </div>
         <div class="row">
           <div class="row">
-            {{teamSuperScout(match, custom)}}
+            {{teamSuperScout(match, custom, alliance)}}
           </div>
         </div>
       </div>
