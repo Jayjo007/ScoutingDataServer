@@ -248,14 +248,6 @@ def exportMatchScheduleToCSV():
     #     csv = fp.read()
     with open('outputs/matchSchedule.csv', 'w', encoding="utf-8", newline="") as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(["Event Key",  
-                         "Match #", 
-                         "red1", 
-                         "red2", 
-                         "red3", 
-                         "blue1", 
-                         "blue2", 
-                         "blue3"])
         scoutingData = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel())
         for match in scoutingData:
             writer.writerow([match.eventKey, match.matchNumber, match.red1, match.red2, match.red3, match.blue1, match.blue2, match.blue3])
