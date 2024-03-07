@@ -20,7 +20,7 @@
     <td>
         <select name="{{dsId}}Position" id="{{dsId}}Position" class="form-select" aria-label="Position">
             <option value="AMP">Amp</option>
-            <option value="CENTER">Center</option>
+            <option selected value="CENTER">Center</option>
             <option value="SOURCE">Source</option>
             <option value="NOSHOW">No Show</option>
         </select>
@@ -30,14 +30,6 @@
             <option value="0">No Attempt</option>
             <option value="1">Succeeded</option>
             <option value="-1">Failed</option>
-        </select>
-    </td>
-    <td>
-        <select name="{{dsId}}ScoreLevel" id="{{dsId}}ScoreLevel" class="form-select" aria-label="Score Level">
-            <option value="None">None</option>
-            <option value="Amp">Amp</option>
-            <option value="Speaker">Speaker</option>
-            <option value="Both">Both</option>
         </select>
     </td>
     <td>
@@ -66,12 +58,12 @@
         </select>
     </td>
     <td>
-        <input type="text" autocomplete="off" class="form-control" name="{{dsId}}Notes" id="{{dsId}}Notes" aria-describedby="notes" placeholder="Notes">
+        <textarea autocomplete="off" class="form-control" name="{{dsId}}Notes" id="{{dsId}}Notes" aria-describedby="notes" placeholder="Notes" rows="2"></textarea>
     </td>
     <td>
         <select name="{{dsId}}Overall" id="{{dsId}}Overall" class="form-select" aria-label="overall">
             <option value="BAD" style="background-color: rgb(255, 64, 64);">Bad</option>
-            <option value="BIG" style="background-color: #ffcccb;">Bid</option>
+            <option value="BID" style="background-color: #ffcccb;">Bid</option>
             <option value="MID" style="background-color: lightyellow;" selected>Mid</option>
             <option value="MOOD" style="background-color: lightgreen;">Mood</option>
             <option value="GOOD" style="background-color: aqua;">Good</option>
@@ -127,7 +119,6 @@
         N/A
     </td>
     {% endif %}
-    <td scope="col" class="text-center align-middle">{{ match.scoreLevel }}</th>
     <td scope="col" class="text-center align-middle">{{ match.intake }}</th>
     {% if match.broken == 0 %}
     <td class="table-success text-center  align-middle">
@@ -202,7 +193,6 @@
         {% endif %}
         <th scope="col">Start Position</th>
         <th scope="col">Midline Grabs</th>
-        <th scope="col">Score Level</th>
         <th scope="col">Intake</th>
         <th scope="col">Broken</th>
         <th scope="col" style="width: 10%">Tippy</th>
@@ -218,7 +208,6 @@
         <th scope="col" class="text-center">Match #</th>
         <th scope="col" class="text-center">Start Position</th>
         <th scope="col" class="text-center">Midline</th>
-        <th scope="col" class="text-center">Score Level</th>
         <th scope="col" class="text-center">Intake</th>
         <th scope="col" class="text-center">Broken?</th>
         <th scope="col" style="width: 10%" class="text-center">Tippy</th>

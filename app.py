@@ -347,7 +347,7 @@ def processSuperScout(request, dsN):
     record.matchLevel = getCurrentMatchLevel()
     record.startPosition = request.form.get(dsN+"Position")
     record.midlineGrab = request.form.get(dsN+"Midline")
-    record.scoreLevel = request.form.get(dsN+"ScoreLevel")
+    record.scoreLevel = None
     record.intake = request.form.get(dsN+"Intake")
     broken = request.form.get(dsN+"Broken")
     if (broken=="true"):
