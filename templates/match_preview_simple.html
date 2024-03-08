@@ -2,7 +2,8 @@
 {% from 'macros/macros.html' import matchPrediction %}
 <!DOCTYPE html> 
 <head> 
-  {{ htmlHead() }}    
+  {{ htmlHead() }}  
+  <title>{{ match.renderEventLevel() }} {{match.matchNumber}} Preview (simple)</title>  
 </head>
 <body>
       {{navBar()}}

@@ -259,7 +259,6 @@
         <th scope="col-3" class="text-center">Team Name</th>
         <th scope="col-2" class="text-center">Matches Played</th>
         <th scope="col-2" class="text-center">SuperScouted<br/>Matches</th>
-        <th scope="col-1" class="text-center">TESTING CENTER MATCHES</th>
         <th scope="col-2" class="text-center">Pit Scouted?</th>
     </thead>
     <tbody>
@@ -292,9 +291,6 @@
             <td class="table-warning text-center">
             {% endif %}
                 {{team.getSuperScoutMatchesPlayed()}}/{{team.getMatchesToPlay()}}
-            </td>
-            <td class="text-center">
-                {{team.getAmpAutoAverages()}}
             </td>
             {% if team.hasPitScoutData() %}
             <td class="table-success text-center">

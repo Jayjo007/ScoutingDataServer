@@ -2,7 +2,10 @@
 {% from 'macros/macros.html' import teamPreview %}
 <!DOCTYPE html> 
 <head> 
-  {{ htmlHead() }}    
+  {{ htmlHead() }}   
+  <title>
+    {{ match.renderEventLevel() }} {{ match.matchNumber }} Preview (detailed) 
+  </title>
 </head>
 <body>
       {{navBar()}}
