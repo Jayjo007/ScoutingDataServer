@@ -259,6 +259,7 @@
         <th scope="col-3" class="text-center">Team Name</th>
         <th scope="col-2" class="text-center">Matches Played</th>
         <th scope="col-2" class="text-center">SuperScouted<br/>Matches</th>
+        <th scope="col-1" class="text-center">TESTING CENTER MATCHES</th>
         <th scope="col-2" class="text-center">Pit Scouted?</th>
     </thead>
     <tbody>
@@ -292,6 +293,9 @@
             {% endif %}
                 {{team.getSuperScoutMatchesPlayed()}}/{{team.getMatchesToPlay()}}
             </td>
+            <td class="text-center">
+                {{team.getAmpAutoAverages()}}
+            </td>
             {% if team.hasPitScoutData() %}
             <td class="table-success text-center">
                 <i class="bi bi-check"></i>
@@ -306,6 +310,42 @@
     </tbody>
 </table>
 {% endmacro %}
+{% macro autonomousBreakdown(teams, startPos) %}
+<table class="table table-bordered">
+    <thead>
+        <th scope="col-1" class="text-center">Team</th>
+        <th scope="col-1" class="text-center">Speaker</th>
+    </thead>
+    <tbody>
+        {% for team in teams %}
+        <tr>
+            <th scope="row" class="text-center">
+                <a class="link-dark" href="/teamBreakdown/{{team.teamNumber}}">
+                    {{team.teamNumber}}
+                </a>
+            </th>
+            <td class="text-center">
+                {% if startPos==0 %}
+                {{team.getAmpAutoAverages()|round(1, 'floor')}}
+                {% elif startPos==1 %}
+                {{team.getCenterAutoAverages()|round(1, 'floor')}}
+                {% else %}
+                {{team.getSourceAutoAverages()|round(1, 'floor')}}
+                {% endif %}
+                {% if startPos==0 %}
+                ({{team.getAmpAutoCount()}})
+                {% elif startPos==1 %}
+                ({{team.getCenterAutoCount()}})
+                {% else %}
+                ({{team.getSourceAutoCount()}})
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
 {% macro pitScoutData(team, pitData) %}
 <table class="table">
     <thead>
