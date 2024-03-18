@@ -351,6 +351,15 @@ def uploadMatches(methods = ["POST"]):
         db.session.add(MatchData(json_object))
         db.session.commit()
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+    
+@app.route("/admin/generateMatchesInDatabase/<matches>")
+def generateMatchesInDatabase(matches):
+    for k in range(int(matches)):
+        newMatch = MatchSchedule(getActiveEventKey(), k+1, getCurrentMatchLevel(), -1, -1, -1, -1, -1, -1)
+        db.session.add(newMatch)
+    db.session.commit()
+    return "Done"
+
 
 def processSuperScout(request, dsN):
     teamNumber = request.form.get(dsN+"TeamNumber")
