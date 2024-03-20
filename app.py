@@ -39,8 +39,15 @@ def submitMatch():
         payload = urllib.parse.unquote(request.get_data())
         if (payload[0] == 'm'):
             json_object = json.loads(payload[10:])
-            db.session.add(MatchData(json_object))
-            db.session.commit()
+            teamNumber = json_object["teamNumber"]
+            eventKey = json_object["event"]
+            matchNumber = json_object["matchNumber"]
+            matchLevel = getCurrentMatchLevel()
+            if (MatchData.query.filter_by(teamNumber=teamNumber, eventKey=eventKey, matchNumber=matchNumber, matchLevel=matchLevel).count() < 1):
+                db.session.add(MatchData(json_object))
+                db.session.commit()
+            else:
+                print("duplicate match")
         return render_template("match_data_import.html")
     else:
         return render_template("match_data_import.html")
@@ -357,6 +364,24 @@ def generateMatchesInDatabase(matches):
     for k in range(int(matches)):
         newMatch = MatchSchedule(getActiveEventKey(), k+1, getCurrentMatchLevel(), -1, -1, -1, -1, -1, -1)
         db.session.add(newMatch)
+    db.session.commit()
+    return "Done"
+
+@app.route("/settings/processMatchScheduleCsv")
+def processMatchSchedule():
+    with open("matchScheduleImport.csv") as csvFile:
+        csvReader = csv.reader(csvFile, delimiter=",")
+        for row in csvReader:
+            matchNumber = row[1]
+            red1 = row[2]
+            red2 = row[3]
+            red3 = row[4]
+            blue1 = row[5]
+            blue2 = row[6]
+            blue3 = row[7]
+            match = MatchSchedule(getActiveEventKey(), matchNumber, getCurrentMatchLevel(), red1, red2, red3, blue1, blue2, blue3)
+            if (MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel(), matchNumber=matchNumber).count() < 1):
+                db.session.add(match)
     db.session.commit()
     return "Done"
 
