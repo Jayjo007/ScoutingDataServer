@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, send_file, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from wtforms import Form, StringField, validators, ValidationError
+from wtforms import Form, StringField, validators, ValidationError, BooleanField
 from dotenv import load_dotenv
 import json, urllib, os, csv
 import requests, datetime
@@ -218,7 +218,10 @@ def customMatchPreviewLanding():
         blue2record = TeamRecord.query.filter_by(teamNumber=match.blue2).first()
         blue3record = TeamRecord.query.filter_by(teamNumber=match.blue3).first()
         tn = TeamNames(red1record, red2record, red3record, blue1record, blue2record, blue3record)
-        return render_template("match_preview.html", match=match, red1=red1Match, red2=red2Match, red3=red3Match, blue1=blue1Match, blue2=blue2Match, blue3=blue3Match, tn=tn)
+        if (form.simple.data):
+            return render_template("match_preview_simple.html", match=match, red1=[], red2=[], red3=[], blue1=[], blue2=[], blue3=[], tn=tn, simple = True)
+        else:
+            return render_template("match_preview.html", match=match, red1=red1Match, red2=red2Match, red3=red3Match, blue1=blue1Match, blue2=blue2Match, blue3=blue3Match, tn=tn, simple = False)
     else:
         return render_template("custom_match_select.html", eventKey=getActiveEventKey(), form=form, teams=teams)
     
@@ -436,6 +439,7 @@ class CustomMatchForm(Form):
     blue1 = StringField('Blue 1', [validators.Length(max=MAX_TEAM_NUMBER_LENGTH), validators.DataRequired(), validate_preview])
     blue2 = StringField('Blue 2', [validators.Length(max=MAX_TEAM_NUMBER_LENGTH), validators.DataRequired(), validate_preview])
     blue3 = StringField('Blue 3', [validators.Length(max=MAX_TEAM_NUMBER_LENGTH), validators.DataRequired(), validate_preview])
+    simple = BooleanField('Simple?')
 
     
 class SelectSuperScoutForm(Form):
