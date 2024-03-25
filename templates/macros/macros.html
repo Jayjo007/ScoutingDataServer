@@ -5,19 +5,9 @@
     {% endif %}
     <td scope="row" class="text-center">{{match.auto_speaker}}</td>
     <td scope="row" class="text-center">{{match.auto_amp}}</td>
-    {% if match.auto_leave == 1 %}
-    <td class="table-success text-center">
-        <i class="bi bi-check"></i>
-    </td>
-    {% elif match.auto_leave == 0 %}
-    <td class="table-danger text-center">
-        <i class="bi bi-x"></i>
-    </td>
-    {% else %}
-    <td scope="row" class="text-center">{{match.auto_leave}}</td>
-    {% endif %}
     <td scope="row" class="text-center">{{match.tele_speaker}}</td>
     <td scope="row" class="text-center">{{match.tele_amp}}</td>
+    <td scope="row" class="text-center">{{match.passing}}</td>
     <td scope="row" class="text-center">{{match.trap}}</td>
     {% if match.climb == 0 %}
     <td scope="row" class="text-center table-secondary">N/A</td>
@@ -52,19 +42,9 @@
     <th scope="row" class="text-center"><a href="/teamMatchBreakdown/{{team.teamNumber}}/{{match.eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">{{team.teamNumber}}</a></th>
     <td scope="row" class="text-center">{{match.auto_speaker}}</td>
     <td scope="row" class="text-center">{{match.auto_amp}}</td>
-    {% if match.auto_leave == 1 %}
-    <td class="table-success text-center">
-        <i class="bi bi-check"></i>
-    </td>
-    {% elif match.auto_leave == 0 %}
-    <td class="table-danger text-center">
-        <i class="bi bi-x"></i>
-    </td>
-    {% else %}
-    <td scope="row" class="text-center">{{match.auto_leave}}</td>
-    {% endif %}
     <td scope="row" class="text-center">{{match.tele_speaker}}</td>
     <td scope="row" class="text-center">{{match.tele_amp}}</td>
+    <td scope="row" class="text-center">{{match.passing}}</td>
     <td scope="row" class="text-center">{{match.trap}}</td>
     {% if match.climb == 0 %}
     <td scope="row" class="text-center table-secondary">N/A</td>
@@ -90,13 +70,9 @@
 {% macro averages(match, team) %}
     <td scope="row" class="text-center">{{match.auto_speaker|round(1, 'floor')}}</td>
     <td scope="row" class="text-center">{{match.auto_amp|round(1, 'floor')}}</td>
-    {% if team != None %}
-    <td scope="row" class="text-center">{{match.auto_leave|round|int}}%</td>
-    {% else %}
-    <td scope="row" class="text-center">{{match.auto_leave|round(1, 'floor')}}</td>
-    {% endif %}
     <td scope="row" class="text-center">{{match.tele_speaker|round(1, 'floor')}}</td>
     <td scope="row" class="text-center">{{match.tele_amp|round(1, 'floor')}}</td>
+    <td scope="row" class="text-center">{{match.passing|round(1, 'floor')}}</td>
     <td scope="row" class="text-center">{{match.trap|round(1, 'floor')}}</td>
     {% if team != None %}
     <td scope="row" class="text-center">{{match.climb|round|int}}%</td>
@@ -111,17 +87,17 @@
 
         <th scope="col" rowspan="2" style="width: 5%">Match Level</th>
         <th scope="col" rowspan="2" class="text-center" style="width: 5%">Match #</th>
-        <th scope="col" colspan="3" class="text-center">Auto</th>
-        <th scope="col" colspan="2" class="text-center">Teleop</th>
+        <th scope="col" colspan="2" class="text-center">Auto</th>
+        <th scope="col" colspan="3" class="text-center">Teleop</th>
         <th scope="col" colspan="2" class="text-center">Endgame</th> 
         <th scope="col" colspan="1" class="text-center">Misc.</th>
     </tr>
     <tr>
         <th scope="col" class="text-center">Speaker</th>
         <th scope="col" class="text-center">Amp</th>
-        <th scope="col" class="text-center">Leave</th>
         <th scope="col" class="text-center">Speaker</th>
         <th scope="col" class="text-center">Amp</th>
+        <th scope="col" class="text-center">Pass</th>
         <th scope="col" class="text-center">Trap</th>
         <th scope="col" class="text-center">Climb</th>
         <th scope="col" class="text-center">Defense</th>
@@ -199,17 +175,17 @@
                 <tr>
                     <th scope="col" rowspan="2" class="text-center align-middle">Driver</br>Station</th>
                     <th scope="col" rowspan="2" class="text-center" style="width: 5%">Team #</th>
-                    <th scope="col" colspan="3" class="text-center">Auto</th>
-                    <th scope="col" colspan="2" class="text-center">Teleop</th>
+                    <th scope="col" colspan="2" class="text-center">Auto</th>
+                    <th scope="col" colspan="3" class="text-center">Teleop</th>
                     <th scope="col" colspan="2" class="text-center">Endgame</th> 
                     <th scope="col" colspan="1" class="text-center">Misc.</th>
                 </tr>
                 <tr>
                     <th scope="col" class="text-center">Speaker</th>
                     <th scope="col" class="text-center">Amp</th>
-                    <th scope="col" class="text-center">Leave</th>
                     <th scope="col" class="text-center">Speaker</th>
                     <th scope="col" class="text-center">Amp</th>
+                    <th scope="col" class="text-center">Pass</th>
                     <th scope="col" class="text-center">Trap</th>
                     <th scope="col" class="text-center">Climb</th>
                     <th scope="col" class="text-center">Total Score</th>

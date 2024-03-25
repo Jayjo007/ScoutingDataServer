@@ -253,10 +253,10 @@ def exportEventDataToCSV():
                          "Trap", 
                          "Climb", 
                          "Defense", 
-                         "Auto Leave"])
+                         "Passing"])
         scoutingData = MatchData.query.filter_by(eventKey=getActiveEventKey())
         for match in scoutingData:
-            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.auto_speaker, match.auto_amp, match.tele_speaker, match.tele_amp, match.trap, match.climb, match.defense, match.auto_leave])
+            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.auto_speaker, match.auto_amp, match.tele_speaker, match.tele_amp, match.trap, match.climb, match.defense, match.passing])
     return send_file(
         'outputs/dataDump.csv',
         mimetype="text/csv",
@@ -292,12 +292,12 @@ def importTabletData():
                 data["matchLevel"] = getCurrentMatchLevel()
                 data["autoSpeaker"] = row[3]
                 data["autoAmp"] = row[4]
-                data["autoLeave"] = row[5]
-                data["teleSpeaker"] = row[6]
-                data["teleAmp"] = row[7]
-                data["trap"] = row[8]
-                data["climbStatus"] = row[9]
-                data["defense"] = row[10]
+                data["teleSpeaker"] = row[5]
+                data["teleAmp"] = row[6]
+                data["trap"] = row[7]
+                data["climbStatus"] = row[8]
+                data["defense"] = row[9]
+                data["passing"] = row[10]
                 data["tablet"] = row[11]
                 data["scouter"] = row[12]
                 matchData = MatchData(data)
@@ -428,7 +428,7 @@ def addAllianceAverages(team1, team2, team3):
     if (totalAverages.trap > 3):
         totalAverages.trap = 3
     totalAverages.climb = (team1.climb + team2.climb + team3.climb) / 100
-    totalAverages.auto_leave = (team1.auto_leave + team2.auto_leave + team3.auto_leave) / 100
+    totalAverages.passing = team1.passing + team2.passing + team3.passing
     return totalAverages
 
 
@@ -534,6 +534,7 @@ class MatchData(db.Model):
     climb = db.Column(db.Integer())
     defense = db.Column(db.Integer())
     auto_leave = db.Column(db.Integer())
+    passing = db.Column(db.Integer())
     tablet = db.Column(db.String(3))
     scouter = db.Column(db.String(50))
     timestamp = db.Column(db.String(50))
@@ -550,7 +551,8 @@ class MatchData(db.Model):
         self.trap = data["trap"]
         self.climb = data["climbStatus"]
         self.defense = data["defense"]
-        self.auto_leave = data["autoLeave"]
+        self.auto_leave = 1
+        self.passing = data["pass"]
         self.tablet = data["tablet"]
         self.scouter = data["scouter"]
         self.timestamp = datetime.datetime.now()
@@ -772,6 +774,7 @@ class MatchAverages():
         self.auto_leave = 0.00
         self.count = 0
         self.climbAttempts = 0
+        self.passing = 0
     def addAverage(self, matchData):
         self.auto_speaker=(self.auto_speaker*self.count+matchData.auto_speaker)/(self.count+1)
         self.auto_amp=(self.auto_amp*self.count+matchData.auto_amp)/(self.count+1)
@@ -788,6 +791,7 @@ class MatchAverages():
             self.auto_leave=(self.auto_leave*self.count+1)/(self.count+1)
         else:
             self.auto_leave=(self.auto_leave*self.count)/(self.count+1)
+        self.passing = (self.passing*self.count+matchData.passing)/(self.count+1)
         self.count += 1
     def scoreMatch(self):
         score = 0
