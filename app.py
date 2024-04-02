@@ -111,11 +111,23 @@ def getTeamBreakdown(team):
 def getMatchPreviewDetailed(matchNo, matchLevel):
     match = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchNumber=matchNo, matchLevel=matchLevel).first_or_404()
     red1Matches = MatchData.query.filter_by(teamNumber=match.red1, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    if (red1Matches.count() < 5):
+        red1Matches = MatchData.query.filter_by(teamNumber=match.red1).filter(MatchData.eventKey.in_((getActiveEventKey(), "prescout"))).order_by(MatchData.timestamp)
     red2Matches = MatchData.query.filter_by(teamNumber=match.red2, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    if (red2Matches.count() < 5):
+        red2Matches = MatchData.query.filter_by(teamNumber=match.red2).filter(MatchData.eventKey.in_((getActiveEventKey(), "prescout"))).order_by(MatchData.timestamp)
     red3Matches = MatchData.query.filter_by(teamNumber=match.red3, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    if (red3Matches.count() < 5):
+        red3Matches = MatchData.query.filter_by(teamNumber=match.red3).filter(MatchData.eventKey.in_((getActiveEventKey(), "prescout"))).order_by(MatchData.timestamp)
     blue1Matches = MatchData.query.filter_by(teamNumber=match.blue1, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    if (blue1Matches.count() < 5):
+        blue1Matches = MatchData.query.filter_by(teamNumber=match.blue1).filter(MatchData.eventKey.in_((getActiveEventKey(), "prescout"))).order_by(MatchData.timestamp)
     blue2Matches = MatchData.query.filter_by(teamNumber=match.blue2, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    if (blue2Matches.count() < 5):
+        blue2Matches = MatchData.query.filter_by(teamNumber=match.blue2).filter(MatchData.eventKey.in_((getActiveEventKey(), "prescout"))).order_by(MatchData.timestamp)
     blue3Matches = MatchData.query.filter_by(teamNumber=match.blue3, eventKey=getActiveEventKey()).order_by(MatchData.matchNumber)
+    if (blue3Matches.count() < 5):
+        blue3Matches = MatchData.query.filter_by(teamNumber=match.blue3).filter(MatchData.eventKey.in_((getActiveEventKey(), "prescout"))).order_by(MatchData.timestamp)
     red1record = TeamRecord.query.filter_by(teamNumber=match.red1).first()
     red2record = TeamRecord.query.filter_by(teamNumber=match.red2).first()
     red3record = TeamRecord.query.filter_by(teamNumber=match.red3).first()
