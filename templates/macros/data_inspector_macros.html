@@ -20,11 +20,17 @@
 {% macro matchRow(match, eventKey) %}
 <tr>
     {% if match.checkIsScouted() %}
-        <th scope="row"><a href="/matchBreakdown/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></div>
+        {% if match.checkIfBreakdownDownloaded() %}
+        <th scope="row"><a href="/matchBreakdown/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></th>
+        
+        {% else %}
+        <th scope="row" colspan="3"><a href="/matchBreakdown/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></th>
+        {% endif %}
+
     {% elif match.checkIfCanBePreviewed() %}
-        <th scope="row">{{match.matchNumber}}: <a href="/matchPreview/{{match.matchNumber}}/{{match.matchLevel}}/simple">Preview</a></div>
+        <th scope="row" colpsan="3">{{match.matchNumber}}: <a href="/matchPreview/{{match.matchNumber}}/{{match.matchLevel}}/simple">Preview</a></th>
     {% else %}
-        <th scope="row">{{match.matchNumber}}</div>
+        <th scope="row" colspan="3">{{match.matchNumber}}</th>
     {% endif %}
     {{teamInMatch(match, match.red1, eventKey)}}
     {{teamInMatch(match, match.red2, eventKey)}}
@@ -39,7 +45,7 @@
     <table class="table">
         <thead>
             <tr>
-                <th scope="col">Match Number</th>
+                <th scope="col" colspan="3">Match Number</th>
                 <th scope="col">Red 1</th>
                 <th scope="col">Red 2</th>
                 <th scope="col">Red 3</th>

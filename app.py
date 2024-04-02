@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from wtforms import Form, StringField, validators, ValidationError, BooleanField
 from dotenv import load_dotenv
 import json, urllib, os, csv
-import requests, datetime
+import requests, datetime, math
 
 load_dotenv()
 
@@ -11,11 +11,13 @@ API_KEY = os.getenv("TBA_API_KEY") #fill in
 
 ALL_TEAMS_URL = "https://www.thebluealliance.com/api/v3/teams/{page_num}/simple"
 MATCH_SCHEDULE_URL = "https://www.thebluealliance.com/api/v3/event/{event_key}/matches/simple"
+MATCH_BREAKDOWN_URL = "https://www.thebluealliance.com/api/v3/event/{event_key}/matches"
 EVENT_TEAMS_URL = "https://www.thebluealliance.com/api/v3/event/{event_key}/teams/simple"
 PING_URL = "https://www.thebluealliance.com/api/v3/status"
 
 #CHANGE THIS IN 2025 WHEN 5 DIGIT TEAM NUMBERS EXIST
 MAX_TEAM_NUMBER_LENGTH=4 
+SCOUTING_ERROR_BOUND=1
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URI")
@@ -90,6 +92,11 @@ def submitNewEventLevel():
 @app.route("/downloadMatchSchedule", methods=["GET"])
 def getMatchScheduleRoute():
     getMatchSchedule()
+    return "Nothing"
+
+@app.route("/settings/downloadMatchBreakdowns", methods=["GET"])
+def downloadMatchBreakdowns():
+    getTBAMatchBreakdowns()
     return "Nothing"
 
 @app.route("/matchDataInspector")
@@ -342,11 +349,6 @@ def superScoutingCustom():
     matchRecord = MatchSchedule(getActiveEventKey(), "Custom", getCurrentMatchLevel(), -1, -1, -1, -1, -1, -1)
     return render_template("super_scout.html", match=matchRecord, custom=custom)
 
-@app.route("/settings/downloadMatchBreakdowns")
-def downloadMatchBreakdowns():
-    print("Downloading match breakdowns for event " + getActiveEventKey())
-    return "None"
-
 @app.route("/app/downloadActiveMatchSchedule")
 def downloadMatchScheduleToApp():
     matches = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel()).all()
@@ -387,6 +389,12 @@ def processMatchSchedule():
                 db.session.add(match)
     db.session.commit()
     return "Done"
+
+@app.route("/settings/validateMatches")
+def validateMatches():
+    for match in MatchSchedule.query.filter_by(eventKey=getActiveEventKey()).order_by(MatchSchedule.matchNumber):
+        validateMatch(match)
+    return "Nothing"
 
 
 def processSuperScout(request, dsN):
@@ -430,6 +438,146 @@ def addAllianceAverages(team1, team2, team3):
     totalAverages.climb = (team1.climb + team2.climb + team3.climb) / 100
     totalAverages.passing = team1.passing + team2.passing + team3.passing
     return totalAverages
+
+def validateMatch(match): #use match schedule
+    redMatch = DataValidation.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=getCurrentMatchLevel(), alliance="r").first()
+    blueMatch = DataValidation.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=getCurrentMatchLevel(), alliance="b").first()
+    red1Count = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.red1).count()
+    red2Count = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.red2).count()
+    red3Count = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.red3).count()
+    blue1Count = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.blue1).count()
+    blue2Count = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.blue2).count()
+    blue3Count = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.blue3).count()
+    if (redMatch != None and blueMatch != None and red1Count > 0 and red2Count > 0 and red3Count > 0 and blue1Count > 0 and blue2Count > 0 and blue3Count > 0):
+        red1 = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.red1).first()
+        red2 = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.red2).first()
+        red3 = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.red3).first()
+        blue1 = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.blue1).first()
+        blue2 = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.blue2).first()
+        blue3 = MatchData.query.filter_by(eventKey=getActiveEventKey(), matchNumber=match.matchNumber, matchLevel=match.matchLevel, teamNumber=match.blue3).first()
+        redValid = True
+        blueValid = True
+        redSemiValid = True
+        blueSemiValid = True
+        redAutoS = red1.auto_speaker + red2.auto_speaker + red3.auto_speaker
+        blueAutoS = blue1.auto_speaker + blue2.auto_speaker + blue3.auto_speaker
+        if (redAutoS == redMatch.auto_speaker):
+            print("Red Auto Speaker validated for match " + str(match.matchNumber))
+        else:
+            print("Error! Red Auto Speaker not valid in match " + str(match.matchNumber) + ". Scouted data: " + str(redAutoS) + " TBA data: " + str(redMatch.auto_speaker))
+            if (abs(redAutoS-redMatch.auto_speaker) > SCOUTING_ERROR_BOUND):
+                redSemiValid = False
+            redValid = False
+        if (blueAutoS == blueMatch.auto_speaker):
+            print("Blue auto speaker validated for match " + str(match.matchNumber))
+        else:
+            print("Error! Blue Auto Speaker not valid in match " + str(match.matchNumber) + ". Scouted data: " + str(blueAutoS) + " TBA data: " + str(blueMatch.auto_speaker))
+            if (abs(blueAutoS-blueMatch.auto_speaker) > SCOUTING_ERROR_BOUND):
+                blueSemiValid = False
+            blueValid = False
+        redAutoA = red1.auto_amp + red2.auto_amp + red3.auto_amp
+        blueAutoA = blue1.auto_amp + blue2.auto_amp + blue3.auto_amp
+        if (redAutoA == redMatch.auto_amp):
+            print("Red Auto Amp validated for match " + str(match.matchNumber))
+        else:
+            print("Error! Red Auto Amp not valid in match " + str(match.matchNumber) + ". Scouted data: " + str(redAutoA) + " TBA data: " + str(redMatch.auto_amp))
+            if (abs(redAutoA-redMatch.auto_amp) > SCOUTING_ERROR_BOUND):
+                redSemiValid = False
+            redValid = False
+        if (blueAutoA == blueMatch.auto_amp):
+            print("Blue auto amp validated for match " + str(match.matchNumber))
+        else:
+            print("Error! Blue Auto Amp not valid in match " + str(match.matchNumber) + ". Scouted data: " + str(blueAutoA) + " TBA data: " + str(blueMatch.auto_amp))
+            if (abs(redAutoA-blueMatch.auto_amp) > SCOUTING_ERROR_BOUND):
+                blueSemiValid = False
+            blueValid = False
+        redTeleS = red1.tele_speaker + red2.tele_speaker + red3.tele_speaker
+        blueTeleS = blue1.tele_speaker + blue2.tele_speaker + blue3.tele_speaker
+        if (redTeleS == redMatch.tele_speaker):
+            print("Red Teleop Speaker validated for match " + str(match.matchNumber))
+        else:
+            print("Error! Red Teleop Speaker not valid in match " + str(match.matchNumber) + ". Scouted data: " + str(redTeleS) + " TBA data: " + str(redMatch.tele_speaker))
+            if (abs(redTeleS-redMatch.tele_speaker) > SCOUTING_ERROR_BOUND):
+                redSemiValid = False
+            redValid = False
+        if (blueTeleS == blueMatch.tele_speaker):
+            print("Blue Teleop Speaker validated for match " + str(match.matchNumber))
+        else:
+            print("Error! Blue Teleop Speaker not valid in match " + str(match.matchNumber) + ". Scouted data: " + str(blueTeleS) + " TBA data: " + str(blueMatch.tele_speaker))
+            if (abs(blueTeleS-blueMatch.tele_speaker) > SCOUTING_ERROR_BOUND):
+                blueSemiValid = False
+            blueValid = False
+        redTeleA = red1.tele_amp + red2.tele_amp + red3.tele_amp
+        blueTeleA = blue1.tele_amp + blue2.tele_amp + blue3.tele_amp
+        if (redTeleA == redMatch.tele_amp):
+            print("Red Teleop Amp validated for match " + str(match.matchNumber))
+        else:
+            print("Error! Red Teleop Amp not valid in match " + str(match.matchNumber) + ". Scouted data: " + str(redTeleA) + " TBA data: " + str(redMatch.tele_amp))
+            if (abs(redTeleA-blueMatch.tele_amp) > SCOUTING_ERROR_BOUND):
+                redSemiValid = False
+            redValid = False
+        if (blueTeleA == blueMatch.tele_amp):
+            print("Blue Teleop Amp validated for match " + str(match.matchNumber))
+        else:
+            print("Error! Blue Teleop Amp not valid in match " + str(match.matchNumber) + ". Scouted data: " + str(blueTeleA) + " TBA data: " + str(blueMatch.tele_amp))
+            if (abs(blueTeleA-blueMatch.tele_amp) > SCOUTING_ERROR_BOUND):
+                blueSemiValid = False
+            blueValid = False
+        if ((redMatch.climb[0] == "0" and red1.climb < 1) or (redMatch.climb[0] == "1" and red1.climb > 0)):
+            print("Red 1 Climb validated for match " + str(match.matchNumber))
+        else:
+            print("Red 1 Climb not valid for match " + str(match.matchNumber))
+            #redSemiValid = False
+            redValid = False
+        if ((redMatch.climb[1] == "0" and red2.climb < 1) or (redMatch.climb[1] == "1" and red2.climb > 0)):
+            print("Red 2 Climb validated for match " + str(match.matchNumber))
+        else:
+            print("Red 2 Climb not valid for match " + str(match.matchNumber))
+            #redSemiValid = False
+            redValid = False
+        if ((redMatch.climb[2] == "0" and red3.climb < 1) or (redMatch.climb[2] == "1" and red3.climb > 0)):
+            print("Red 3 Climb validated for match " + str(match.matchNumber))
+        else:
+            print("Red 3 Climb not valid for match " + str(match.matchNumber))
+            #redSemiValid = False
+            redValid = False
+        if ((blueMatch.climb[0] == "0" and blue1.climb < 1) or (blueMatch.climb[0] == "1" and blue1.climb > 0)):
+            print("Blue 1 Climb validated for match " + str(match.matchNumber))
+        else:
+            print("Blue 1 Climb not valid for match " + str(match.matchNumber))
+            #blueSemiValid = False
+            blueValid = False
+        if ((blueMatch.climb[1] == "0" and blue2.climb < 1) or (blueMatch.climb[1] == "1" and blue2.climb > 0)):
+            print("Blue 2 Climb validated for match " + str(match.matchNumber))
+        else:
+            print("Blue 2 Climb not valid for match " + str(match.matchNumber))
+            #blueSemiValid = False
+            blueValid = False
+        if ((blueMatch.climb[2] == "0" and blue3.climb < 1) or (blueMatch.climb[2] == "1" and blue3.climb > 0)):
+            print("Blue 3 Climb validated for match " + str(match.matchNumber))
+        else:
+            print("Blue 3 Climb not valid for match " + str(match.matchNumber))
+            #blueSemiValid = False
+            blueValid = False
+        if (redValid):
+            redMatch.validated = 2
+        elif(redSemiValid):
+            redMatch.validated = 1
+        else:
+            redMatch.validated = 0
+        if (blueValid):
+            blueMatch.validated = 2
+        elif(blueSemiValid):
+            blueMatch.validated = 1
+        else:
+            blueMatch.validated = 0
+        db.session.commit()
+        #climb (endGameRobot#)
+        
+        
+        
+
+
 
 
 class CustomMatchForm(Form):
@@ -706,6 +854,31 @@ class MatchSchedule(db.Model):
             return True
         else:
             return False
+    def checkIfBreakdownDownloaded(self):
+        if DataValidation.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel).count() > 1:
+            return True
+        else:
+            return False
+    def checkIfRedValid(self):
+        if DataValidation.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel, alliance='r').first().validated == 2:
+            return True
+        else:
+            return False
+    def checkIfRedSemiValid(self):
+        if DataValidation.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel, alliance='r').first().validated == 1:
+            return True
+        else:
+            return False
+    def checkIfBlueValid(self):
+        if DataValidation.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel, alliance='b').first().validated == 2:
+            return True
+        else:
+            return False
+    def checkIfBlueSemiValid(self):
+        if DataValidation.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel, alliance='b').first().validated == 1:
+            return True
+        else:
+            return False
     def checkIfTeamScouted(self, team):
         if MatchData.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel, teamNumber=team).count() > 0:
             return True
@@ -751,15 +924,15 @@ class DataValidation(db.Model):
     eventKey = db.Column(db.String(15), primary_key=True)
     matchNumber = db.Column(db.Integer(), primary_key=True)
     matchLevel = db.Column(db.String(50), primary_key=True)
-    alliance = db.Column(db.Integer(), primary_key=True)
+    alliance = db.Column(db.String(5), primary_key=True)
     auto_speaker = db.Column(db.Integer())
     auto_amp = db.Column(db.Integer())
     tele_speaker = db.Column(db.Integer())
     tele_amp = db.Column(db.Integer())
     trap = db.Column(db.Integer())
-    climb = db.Column(db.Integer())
-    defense = db.Column(db.Integer())
+    climb = db.Column(db.String(50))
     auto_leave = db.Column(db.Integer())
+    validated = db.Column(db.Integer())
 
 class MatchAverages():
     def __init__(self, teamNumber):
@@ -866,6 +1039,62 @@ def getMatchSchedule():
         matchRecord = MatchSchedule(eventKey, str(matchNumber), match["comp_level"], red1, red2, red3, blue1, blue2, blue3)
         db.session.add(matchRecord)   
     db.session.commit()
+
+
+def compileBreakdown(match, breakdown, dv, red):
+    dv.matchNumber = match["match_number"]
+    dv.eventKey = getActiveEventKey()
+    dv.matchLevel = match["comp_level"]
+    if (red):
+        dv.alliance = "r"
+    else:
+        dv.alliance = "b"
+    dv.auto_amp = int(breakdown["autoAmpNoteCount"])
+    dv.auto_speaker = int(breakdown["autoSpeakerNoteCount"])
+    dv.tele_amp = int(breakdown["teleopAmpNoteCount"])
+    dv.tele_speaker = int(breakdown["teleopSpeakerNoteCount"])+int(breakdown["teleopSpeakerNoteAmplifiedCount"])
+    redTrap = 0
+    if (breakdown["trapCenterStage"]==True):
+        redTrap += 1
+    if (breakdown["trapStageLeft"]==True):
+        redTrap += 1
+    if (breakdown["trapStageRight"]==True):
+        redTrap += 1
+    dv.trap = redTrap
+    climbStr=""
+    if (breakdown["endGameRobot1"] != "None" and breakdown["endGameRobot1"] != "Parked"):
+        climbStr+="1"
+    else:
+        climbStr+="0"
+    if (breakdown["endGameRobot2"] != "None" and breakdown["endGameRobot2"] != "Parked"):
+        climbStr+="1"
+    else:
+        climbStr+="0"
+    if (breakdown["endGameRobot3"] != "None" and breakdown["endGameRobot3"] != "Parked"):
+        climbStr+="1"
+    else:
+        climbStr+="0"
+    dv.climb = climbStr
+
+def getTBAMatchBreakdowns():
+    eventKey = getActiveEventKey()
+    DataValidation.query.filter_by(eventKey=eventKey).delete()
+    db.session.commit()
+    response = requests.get(url=MATCH_BREAKDOWN_URL.format(event_key = str(eventKey)), headers={'X-TBA-Auth-Key':API_KEY, 'accept': 'application/json'})
+    matchBreakdownJson = response.json()
+    for match in matchBreakdownJson:
+        if (match["score_breakdown"] != None):
+            score_breakdown = match["score_breakdown"]
+            redBreakdown = score_breakdown["red"]
+            blueBreakdown = score_breakdown["blue"]
+            redMatchBreakdownRecord = DataValidation()
+            blueMatchBreakdownRecord = DataValidation()
+            compileBreakdown(match, redBreakdown, redMatchBreakdownRecord, True)
+            compileBreakdown(match, blueBreakdown, blueMatchBreakdownRecord, False)
+            db.session.add(redMatchBreakdownRecord)   
+            db.session.add(blueMatchBreakdownRecord)   
+    db.session.commit()
+
 
 
     
