@@ -71,7 +71,7 @@ def importTeams():
 
 @app.route("/settings")
 def openSettings():
-    return render_template("settings.html", eventKey=getActiveEventKey(), ping=ping(), eventLevel=getCurrentMatchLevel())
+    return render_template("settings.html", eventKey=getActiveEventKey(), ping=ping(), eventLevel=getCurrentMatchLevel(), fieldSide=getSideOfField())
 
 @app.route("/changeActiveEventKey", methods=["POST"])
 def submitNewEventKey():
@@ -85,6 +85,13 @@ def submitNewEventLevel():
     if request.method == 'POST':
         newEventKey = urllib.parse.unquote(request.get_data()).split("=")[-1]
         setActiveEventLevel(newEventKey)
+    return render_template("redirect_settings.html")
+
+@app.route("/changeCurrentSide", methods=["POST"])
+def submitNewFieldSide():
+    if request.method == 'POST':
+        newEventKey = urllib.parse.unquote(request.get_data()).split("=")[-1]
+        setFieldSide(newEventKey)
     return render_template("redirect_settings.html")
 
 @app.route("/downloadMatchSchedule", methods=["GET"])
@@ -262,17 +269,68 @@ def exportEventDataToCSV():
                          "Auto Amp", 
                          "Teleop Speaker", 
                          "Teleop Amp", 
+                         "Missed Tele Speaker",
                          "Trap", 
                          "Climb", 
                          "Defense", 
-                         "Passing"])
+                         "Passing",])
         scoutingData = MatchData.query.filter_by(eventKey=getActiveEventKey())
         for match in scoutingData:
-            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.auto_speaker, match.auto_amp, match.tele_speaker, match.tele_amp, match.trap, match.climb, match.defense, match.passing])
+            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.auto_speaker, match.auto_amp, match.tele_speaker, match.tele_amp, None,match.trap, match.climb, match.defense, match.passing])
     return send_file(
         'outputs/dataDump.csv',
         mimetype="text/csv",
         download_name=getActiveEventKey()+"DataDump.csv",
+        as_attachment=True)
+
+@app.route("/exportQualitativeEventData")
+def exportSuperScoutDataToCSV():
+    # with open("outputs/Adjacency.csv") as fp:
+    #     csv = fp.read()
+    with open('outputs/qualitativeDataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(["Event Key", 
+                         "Match Level", 
+                         "Match #", 
+                         "Team #", 
+                         "Starting Position", 
+                         "Broken", 
+                         "Notes", 
+                         "Overall"])
+        scoutingData = SuperScoutRecord.query.filter_by(eventKey=getActiveEventKey())
+        for match in scoutingData:
+            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.startPosition, match.broken, match.notes, match.overall])
+    return send_file(
+        'outputs/qualitativeDataDump.csv',
+        mimetype="text/csv",
+        download_name=getActiveEventKey()+"SuperScoutDataDump.csv",
+        as_attachment=True)
+
+@app.route("/exportAutonomousEventData")
+def exportAutonomousDataToCSV():
+    # with open("outputs/Adjacency.csv") as fp:
+    #     csv = fp.read()
+    with open('outputs/autonomousDataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(["Event Key", 
+                         "Match Level", 
+                         "Match #", 
+                         "Team #", 
+                         "note_1", 
+                         "note_2", 
+                         "note_3", 
+                         "note_4", 
+                         "note_5", 
+                         "note_6", 
+                         "note_7", 
+                         "note_8"])
+        scoutingData = AutonomousData.query.filter_by(eventKey=getActiveEventKey())
+        for match in scoutingData:
+            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.note_1, match.note_2, match.note_3, match.note_4, match.note_5, match.note_6, match.note_7, match.note_8])
+    return send_file(
+        'outputs/autonomousDataDump.csv',
+        mimetype="text/csv",
+        download_name=getActiveEventKey()+"AutonomousDataDump.csv",
         as_attachment=True)
 
 @app.route("/exportMatchSchedule")
@@ -293,10 +351,13 @@ def exportMatchScheduleToCSV():
 @app.route("/importTabletData")
 def importTabletData():
     with open('imports/app_database-TeamMatchScout.csv', newline='') as csvfile:
-        csvreader = csv.reader(csvfile, delimiter=',')
+        csvreader = csv.reader(csvfile, delimiter=';')
         for row in csvreader:
-            print("length:" + str(len(row)))
+            print(str(len(row)))
+            print(row[1] + ": " + getActiveEventKey())
+            print(row[0])
             if (len(row) >= 12 and row[1] == getActiveEventKey() and row[0] != "team_number"):
+                print("Processing")
                 data = dict()
                 data["teamNumber"] = row[0]
                 data["event"] = row[1]
@@ -309,7 +370,7 @@ def importTabletData():
                 data["trap"] = row[7]
                 data["climbStatus"] = row[8]
                 data["defense"] = row[9]
-                data["passing"] = row[10]
+                data["pass"] = row[10]
                 data["tablet"] = row[11]
                 data["scouter"] = row[12]
                 matchData = MatchData(data)
@@ -329,7 +390,7 @@ def superScouting():
     custom = request.args.get("custom")
     alliance = request.args.get("alliance")
     matchRecord = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel(), matchNumber=matchNumber).first()
-    return render_template("super_scout.html", match=matchRecord, custom=custom, alliance=alliance)
+    return render_template("super_scout.html", match=matchRecord, custom=custom, alliance=alliance, scoringTable=getSideOfField())
 
 @app.route("/superScout/submit", methods=["POST"])
 def submitSuperScout():
@@ -406,20 +467,60 @@ def processSuperScout(request, dsN):
     record = SuperScoutRecord(teamNumber, getActiveEventKey(), request.form.get("matchNumber"))
     record.matchLevel = getCurrentMatchLevel()
     record.startPosition = request.form.get(dsN+"Position")
-    record.midlineGrab = request.form.get(dsN+"Midline")
+    #record.midlineGrab = request.form.get(dsN+"Midline")
+    record.midlineGrab = None
     record.scoreLevel = None
-    record.intake = request.form.get(dsN+"Intake")
+    #record.intake = request.form.get(dsN+"Intake")
+    record.intake = None
     broken = request.form.get(dsN+"Broken")
     if (broken=="true"):
         record.broken = 1
     else:
         record.broken = 0
-    record.tippy = request.form.get(dsN+"Tippy")
-    record.pushable = request.form.get(dsN+"Pushable")
+    #record.tippy = request.form.get(dsN+"Tippy")
+    #record.pushable = request.form.get(dsN+"Pushable")
+    record.tippy = None
+    record.pushable = None
     record.notes = request.form.get(dsN+"Notes")
     record.overall = request.form.get(dsN+"Overall")
     db.session.add(record)
     db.session.commit()
+    autoData = AutonomousData(teamNumber, request.form.get("matchNumber"), getActiveEventKey(), getCurrentMatchLevel())
+    if (request.form.get("note1") == teamNumber):
+        autoData.note_1 = 1
+    else:
+        autoData.note_1 = 0
+    if (request.form.get("note2") == teamNumber):
+        autoData.note_2 = 1
+    else:
+        autoData.note_2 = 0
+    if (request.form.get("note3") == teamNumber):
+        autoData.note_3 = 1
+    else:
+        autoData.note_3 = 0
+    if (request.form.get("note4") == teamNumber):
+        autoData.note_4 = 1
+    else:
+        autoData.note_4 = 0
+    if (request.form.get("note5") == teamNumber):
+        autoData.note_5 = 1
+    else:
+        autoData.note_5 = 0
+    if (request.form.get("note6") == teamNumber):
+        autoData.note_6 = 1
+    else:
+        autoData.note_6 = 0
+    if (request.form.get("note7") == teamNumber):
+        autoData.note_7 = 1
+    else:
+        autoData.note_7 = 0
+    if (request.form.get("note8") == teamNumber):
+        autoData.note_8 = 1
+    else:
+        autoData.note_8 = 0
+    db.session.add(autoData)
+    db.session.commit()
+
     
 
 def validate_preview(form, field):
@@ -542,6 +643,7 @@ class MatchData(db.Model):
     auto_amp = db.Column(db.Integer())
     tele_speaker = db.Column(db.Integer())
     tele_amp = db.Column(db.Integer())
+    missed_tele_speaker = db.Column(db.Integer())
     trap = db.Column(db.Integer())
     climb = db.Column(db.Integer())
     defense = db.Column(db.Integer())
@@ -560,6 +662,7 @@ class MatchData(db.Model):
         self.auto_amp = data["autoAmp"]
         self.tele_speaker = data["teleSpeaker"]
         self.tele_amp = data["teleAmp"]
+        self.missed_tele_speaker = data["teleMiss"]
         self.trap = data["trap"]
         self.climb = data["climbStatus"]
         self.defense = data["defense"]
@@ -772,6 +875,27 @@ class DataValidation(db.Model):
     climb = db.Column(db.Integer())
     defense = db.Column(db.Integer())
     auto_leave = db.Column(db.Integer())
+    
+
+class AutonomousData(db.Model):
+    __tablename__ = "autonomous_data"
+    teamNumber = db.Column(db.String(50), primary_key=True)
+    matchNumber = db.Column(db.Integer(), primary_key=True)
+    matchLevel = db.Column(db.String(50), primary_key=True)
+    eventKey = db.Column(db.String(50), primary_key=True)
+    note_1 = db.Column(db.Integer())
+    note_2 = db.Column(db.Integer())
+    note_3 = db.Column(db.Integer())
+    note_4 = db.Column(db.Integer())
+    note_5 = db.Column(db.Integer())
+    note_6 = db.Column(db.Integer())
+    note_7 = db.Column(db.Integer())
+    note_8 = db.Column(db.Integer())
+    def __init__(self, teamNumber, matchNumber, eventKey, matchLevel):
+        self.teamNumber = teamNumber
+        self.matchNumber = matchNumber
+        self.eventKey = eventKey
+        self.matchLevel = matchLevel
 
 class MatchAverages():
     def __init__(self, teamNumber):
@@ -891,6 +1015,11 @@ def getCurrentMatchLevel():
         return ActiveEventKey.query.filter_by(index=2).first().activeEventKey
     return "qm"
 
+def getSideOfField():
+    if (not ActiveEventKey.query.filter_by(index=3).first() == None):
+        return ActiveEventKey.query.filter_by(index=3).first().activeEventKey
+    return "1"
+
 def setActiveEventKey(newEventKey):
     if (not ActiveEventKey.query.first() == None):
         ActiveEventKey.query.first().activeEventKey = newEventKey
@@ -904,5 +1033,14 @@ def setActiveEventLevel(newEventLevel):
     else:
         newLevel = ActiveEventKey(newEventLevel)
         newLevel.index = 2
+        db.session.add(newLevel)
+    db.session.commit()
+
+def setFieldSide(newEventLevel):
+    if (not ActiveEventKey.query.filter_by(index="3").first() == None):
+        ActiveEventKey.query.filter_by(index="3").first().activeEventKey = newEventLevel
+    else:
+        newLevel = ActiveEventKey(newEventLevel)
+        newLevel.index = 3
         db.session.add(newLevel)
     db.session.commit()

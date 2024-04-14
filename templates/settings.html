@@ -36,9 +36,25 @@
             <div class="row">
               <h3>Current Event Level</h3>
               <form action="/changeActiveEventLevel" method="POST">
-                <input type="text" name="newEventLevel" id="newEventLevel" placeholder="New Event Level">
+                <select name="newEventLevel" id="newEventLevel" class="form-select" aria-label="New Side">
+                  <option value="qm" {% if eventLevel == "qm"%}selected{% endif %}>Qualifying Matches</option>
+                  <option value="sf" {% if eventLevel == "sf"%}selected{% endif %}>Playoffs</option>
+                  <option value="f" {% if eventLevel == "f"%}selected{% endif %}>Finals</option>
+                </select>
                 <button type="submit" class="btn btn-primary">Set Active Event Level</button>
                 <p>Active Event Level: {{eventLevel}}</p>
+              </form>
+            </div>
+            <div class="row">
+              <h3>Scouting Side Of Field</h3>
+              <form action="/changeCurrentSide" method="POST">
+                <select name="newSide" id="newSide" class="form-select" aria-label="New Side">
+                  <option value="1" {% if fieldSide == "1"%}selected{% endif %}>Scoring Table</option>
+                  <option value="0" {% if fieldSide == "0"%}selected{% endif %}>Amp Side</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Set Scouting Field Side</button>
+                <p>Current Field Side: {% if fieldSide == "1"%}Scoring Table{% else %}Amp Side{% endif %}
+                </p>
               </form>
             </div>
           </div>
