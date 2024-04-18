@@ -276,7 +276,7 @@ def exportEventDataToCSV():
                          "Passing",])
         scoutingData = MatchData.query.filter_by(eventKey=getActiveEventKey())
         for match in scoutingData:
-            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.auto_speaker, match.auto_amp, match.tele_speaker, match.tele_amp, None,match.trap, match.climb, match.defense, match.passing])
+            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.auto_speaker, match.auto_amp, match.tele_speaker, match.tele_amp, match.missed_tele_speaker, match.trap, match.climb, match.defense, match.passing])
     return send_file(
         'outputs/dataDump.csv',
         mimetype="text/csv",
@@ -377,7 +377,77 @@ def importTabletData():
                 db.session.add(matchData)
                 db.session.commit()
     return "None"
-    
+
+@app.route("/importMatchData")
+def importMatchDataFromOtherServer():
+    with open('imports/matchData/matchData.csv', newline='') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',')
+        for row in csvreader:
+            print(str(len(row)))
+            print(row[1] + ": " + getActiveEventKey())
+            print(row[0])
+            if (len(row) >= 12 and row[0] == getActiveEventKey() and row[0] != "Event Key"):
+                print("Processing")
+                data = dict()
+                data["event"] = row[0]
+                data["matchLevel"] = row[1]
+                data["matchNumber"] = row[2]
+                data["teamNumber"] = row[3]
+                data["autoSpeaker"] = row[4]
+                data["autoAmp"] = row[5]
+                data["teleSpeaker"] = row[6]
+                data["teleAmp"] = row[7]
+                data["teleMiss"] = row[8]
+                data["trap"] = row[9]
+                data["climbStatus"] = row[10]
+                data["defense"] = row[11]
+                data["pass"] = row[12]
+                matchData = MatchData(data)
+                db.session.add(matchData)
+                db.session.commit()
+    return "None"
+
+@app.route("/importSuperScoutData")
+def importSuperScoutDataFromOtherServer():
+    with open('imports/superScoutData/superScoutData.csv', newline='') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',')
+        for row in csvreader:
+            print(str(len(row)))
+            print(row[1] + ": " + getActiveEventKey())
+            print(row[0])
+            if (len(row) >= 8 and row[0] == getActiveEventKey() and row[0] != "Event Key"):
+                print("Processing")
+                matchData = SuperScoutRecord(row[3], row[0], row[2])
+                matchData.matchLevel = row[1]
+                matchData.startPosition = row[4]
+                matchData.broken = row[5]
+                matchData.notes = row[6]
+                matchData.overall = row[7]
+                db.session.add(matchData)
+                db.session.commit()
+    return "None"
+
+@app.route("/importAutonomousData")
+def importAutonomousDataFromOtherServer():
+    with open('imports/autonomousData/autonomousData.csv', newline='') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',')
+        for row in csvreader:
+            print(str(len(row)))
+            print(row[1] + ": " + row[0])
+            if (len(row) >= 12 and row[0] == getActiveEventKey() and row[0] != "Event Key"):
+                print("Processing")
+                matchData = AutonomousData(row[3], row[2], row[0], row[1])
+                matchData.note_1 = row[4]
+                matchData.note_2 = row[5]
+                matchData.note_3 = row[6]
+                matchData.note_4 = row[7]
+                matchData.note_5 = row[8]
+                matchData.note_6 = row[9]
+                matchData.note_7 = row[10]
+                matchData.note_8 = row[11]
+                db.session.add(matchData)
+                db.session.commit()
+    return "None"
 
 @app.route("/superScout")
 def superScoutLanding():
@@ -904,6 +974,7 @@ class MatchAverages():
         self.auto_amp = 0.0
         self.tele_speaker = 0.0
         self.tele_amp = 0.0
+        self.missed_tele_speaker = 0.0
         self.trap = 0
         self.climb = 0.00
         self.defense = "N/A"
@@ -916,6 +987,7 @@ class MatchAverages():
         self.auto_amp=(self.auto_amp*self.count+matchData.auto_amp)/(self.count+1)
         self.tele_speaker=(self.tele_speaker*self.count+matchData.tele_speaker)/(self.count+1)
         self.tele_amp=(self.tele_amp*self.count+matchData.tele_amp)/(self.count+1)
+        self.missed_tele_speaker=(self.missed_tele_speaker*self.count+matchData.missed_tele_speaker)/(self.count+1)
         self.trap=(self.trap*self.count+matchData.trap)/(self.count+1)
         if (matchData.climb > 0):
             self.climb=(self.climb*self.climbAttempts+1)/(self.climbAttempts+1)
