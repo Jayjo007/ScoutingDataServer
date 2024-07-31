@@ -9,6 +9,11 @@
         function(data) { }); return false; }); }); </script> 
     <script type=text/javascript> $(function() { $("#downloadTeamListButton").click(function (event) { $.getJSON('/downloadTeamList', { },
       function(data) { }); return false; }); }); </script> 
+    <script type=text/javascript> $(function() { $("#downloadMatchBreakdownsButton").click(function (event) { $.getJSON('/settings/downloadMatchBreakdowns', { },
+        function(data) { }); return false; }); }); </script> 
+    <script type=text/javascript> $(function() { $("#processMatchScheduleCsvButton").click(function (event) { $.getJSON('/settings/processMatchScheduleCsv', { },
+      function(data) { }); return false; }); }); </script> 
+    <title>Settings</title>
 </head>
 <body>
     <div class="jumbotron text-center">
@@ -20,19 +25,47 @@
           </div>
         <div class="row">
           <div class="col-sm-6">
-            <h3>Event Key</h3>
-            <form action="/changeActiveEventKey" method="POST">
+            <div class="row">
+              <h3>Event Key</h3>
+              <form action="/changeActiveEventKey" method="POST">
                 <input type="text" name="newEventKey" id="newEventKey" placeholder="New Event Key">
                 <button type="submit" class="btn btn-primary">Set Active Event Key</button>
                 <p>Active Event Key: {{eventKey}}</p>
-            </form>
+              </form>
+            </div>
+            <div class="row">
+              <h3>Current Event Level</h3>
+              <form action="/changeActiveEventLevel" method="POST">
+                <select name="newEventLevel" id="newEventLevel" class="form-select" aria-label="New Side">
+                  <option value="qm" {% if eventLevel == "qm"%}selected{% endif %}>Qualifying Matches</option>
+                  <option value="sf" {% if eventLevel == "sf"%}selected{% endif %}>Playoffs</option>
+                  <option value="f" {% if eventLevel == "f"%}selected{% endif %}>Finals</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Set Active Event Level</button>
+                <p>Active Event Level: {{eventLevel}}</p>
+              </form>
+            </div>
+            <div class="row">
+              <h3>Scouting Side Of Field</h3>
+              <form action="/changeCurrentSide" method="POST">
+                <select name="newSide" id="newSide" class="form-select" aria-label="New Side">
+                  <option value="1" {% if fieldSide == "1"%}selected{% endif %}>Scoring Table</option>
+                  <option value="0" {% if fieldSide == "0"%}selected{% endif %}>Amp Side</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Set Scouting Field Side</button>
+                <p>Current Field Side: {% if fieldSide == "1"%}Scoring Table{% else %}Amp Side{% endif %}
+                </p>
+              </form>
+            </div>
           </div>
           <div class="col-sm-6">
             <h3>Internet Admin</h3>
             {% if ping %}
             <button id="importTeamsButton" class="btn btn-primary m-1">Import Team Names</button> <br/>
             <button id="downloadMatchScheduleButton" class="btn btn-primary m-1">Download Match Schedule</button> <br/>
-            <button id="downloadTeamListButton" class="btn btn-primary m-1">Download Team List</button>
+            <button id="downloadTeamListButton" class="btn btn-primary m-1">Download Team List</button> <br/>
+            <button id="processMatchScheduleCsvButton" class="btn btn-primary m-1">Process Match Schedule Backup</button> <br/>
+            <button id="downloadMatchBreakdownsButton" class="btn btn-primary m-1 d-none">Download Match Breakdowns (WIP/NF)</button> <br/>
             {% else %}
             <p>Please connect to internet to use this function</p>
             {% endif %}

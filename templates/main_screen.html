@@ -2,6 +2,7 @@
 <!DOCTYPE html> 
 <head> 
     {{htmlHead()}}    
+    <title>Scouting Hub</title>
 </head>
 <body>
       {{navBar()}}
@@ -12,19 +13,20 @@
             <h3>Event Scouting</h3>
             <a href="/submitMatch" class="btn btn-primary m-1">Import Matches</a>
             <a href="/submitPitScout" class="btn btn-primary m-1">Import Pit Data</a><br/>
-            <a href="/" class="btn btn-primary m-1">SuperScout (WIP)</a>
+            <a href="/superScout" class="btn btn-primary m-1">SuperScout</a>
           </div>
           <div class="col-sm-4 text-center">
             <h3>Data Inspector</h3>
             <a href="/matchDataInspector" class="btn btn-primary m-1">Match Data</a>
             <a href="/teamDataInspector" class="btn btn-primary m-1">Team Lookup</a><br/>
             <a href="/customMatchPreview" class="btn btn-primary m-1">Custom Match Preview</a><br/>
-            <a href="/" class="btn btn-primary m-1">Picklisting (WIP)</a>
+            <h3>Game-Specific</h3>
+            <a href="/autonomousAnalysis" class="btn btn-primary m-1">Autonomous Analysis</a><br/>
           </div>
           <div class="col-sm-4 text-center">
             <h3>Settings</h3>
             <a href="/settings" class="btn btn-primary m-1">Settings</a><br/>
-            <a href="/admin" class="btn btn-danger m-1">Admin (WIP)</a>
+            <a href="/admin" class="btn btn-danger m-1">Admin</a>
           </div>
         </div>
       </div>

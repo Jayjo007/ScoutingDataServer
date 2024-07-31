@@ -4,7 +4,14 @@
     {{htmlHead()}}
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
     <script type="text/javascript"> $(function() { $("#clearEventDataButton").click(function (event) { $.getJSON('/clearEventData', { },
-        function(data) { }); return false; }); }); </script>     
+        function(data) { }); return false; }); }); </script>  
+    <script type="text/javascript"> $(function() { $("#importMatchData").click(function (event) { $.getJSON('/importMatchData', { },
+        function(data) { }); return false; }); }); </script>  
+    <script type="text/javascript"> $(function() { $("#importSuperScoutData").click(function (event) { $.getJSON('/importSuperScoutData', { },
+        function(data) { }); return false; }); }); </script>  
+    <script type="text/javascript"> $(function() { $("#importAutonomousData").click(function (event) { $.getJSON('/importAutonomousData', { },
+        function(data) { }); return false; }); }); </script>  
+        <title>ADMIN</title> 
 </head>
 <body>
       {{navBar()}}
@@ -16,8 +23,39 @@
         <div class="row">
             <div class="col">
                 <div class="row">
-                    <h4>Event Admin</h4>
-                    <button id="exportEventData" class="btn btn-info m-1">Export Active Event Data (Not Functional Yet)</button>
+                    <div class="col-6 text-center">
+                        <h4>Exports</h4>
+                        <div class="row m-1">
+                            <a id="exportEventData" download="dataDump.csv" href="/exportEventData" role="button" class="btn btn-info m-1">Export Active Event Match Data</a>
+                        </div>
+                        <div class="row m-1">
+                            <a id="exportSuperScoutEventData" download="qualitativeDataDump.csv" href="/exportQualitativeEventData" role="button" class="btn btn-info m-1">Export Active Event SuperScout Data</a>
+                        </div>
+                        <div class="row m-1">
+                            <a id="exportAutonomousEventData" download="autonomousDataDump.csv" href="/exportAutonomousEventData" role="button" class="btn btn-info m-1">Export Active Event Autonomous Data</a>
+                        </div>
+                        <br/>
+                        <div class="row m-1">
+                            <a id="exportMatchSchedule" download="matchSchedule.csv" href="/exportMatchSchedule" role="button" class="btn btn-info m-1">Export Active Match Schedule</a>
+                        </div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <h4>Imports</h4>
+                        <div class="row m-1">
+                            <button id="importMatchData" class="btn btn-info m-1">Import Match Data</a>
+                        </div>
+                        <div class="row m-1">
+                            <button id="importSuperScoutData" class="btn btn-info m-1">Import SuperScout Data</a>
+                        </div>
+                        <div class="row m-1">
+                            <button id="importAutonomousData" class="btn btn-info m-1">Import Autonomous Data</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <br/>
+                    <br/>
+                    <br/>
                     <button id="clearEventDataButton" class="btn btn-danger m-1">Clear Active Event Data</button> <br/>
                 </div>
             </div>

@@ -1,0 +1,193 @@
+{% from 'macros/autonomous_scouting_macros.html' import redAutonomousScoringSide, blueAutonomousScoringSide, redAutonomousNonScoringSide, blueAutonomousNonScoringSide%}
+{% macro superScoutHelper(team, red, dsN, dsId, custom) %}
+<tr>
+    {% if (red==true) %}
+    <td class="text-end table-danger">
+        Red 
+        {% else %}
+    <td class="text-end table-primary">
+        Blue 
+        {% endif %}
+        {{dsN}}
+    </td>
+    <td class="text-end">
+         
+        {% if custom != True %}
+        <input type="text" readonly class="form-control-plaintext" name="{{dsId}}TeamNumber" id="{{dsId}}TeamNumber" value="{{team}}">
+        {% else %}
+        <input type="text" class="form-control" name="{{dsId}}TeamNumber" id="{{dsId}}TeamNumber" value="" maxlength="4">
+        {% endif %}
+    </td>
+    <td>
+        <select name="{{dsId}}Position" id="{{dsId}}Position" class="form-select" aria-label="Position">
+            <option value="AMP">Amp</option>
+            <option selected value="CENTER">Center</option>
+            <option value="SOURCE">Source</option>
+            <option value="NOSHOW">No Show</option>
+        </select>
+    </td>
+    <td class="text-center align-middle">
+        <input class="form-control form-check-input" type="checkbox" value="true" style="height:40px !important; width: 40px !important" name="{{dsId}}Broken" id="{{dsId}}Broken">
+    </td>
+    <td>
+        <textarea autocomplete="off" class="form-control" name="{{dsId}}Notes" id="{{dsId}}Notes" aria-describedby="notes" placeholder="Notes" rows="2"></textarea>
+    </td>
+    <td>
+        <select name="{{dsId}}Overall" id="{{dsId}}Overall" class="form-select" aria-label="overall">
+            <option value="BAD" style="background-color: rgb(255, 64, 64);">Bad</option>
+            <option value="BID" style="background-color: #ffcccb;">Bid</option>
+            <option value="MID" style="background-color: lightyellow;" selected>Mid</option>
+            <option value="MOOD" style="background-color: lightgreen;">Mood</option>
+            <option value="GOOD" style="background-color: aqua;">Good</option>
+        </select>
+    </td>
+</tr>
+{% endmacro %}
+{% macro teamSuperScout(match, custom, alliance, scoringTable) %}
+<form method="POST" action="/superScout/submit">
+<div class="row">
+    <div class="col-8">
+        <table class="table table-bordered table-hover">
+            {% if custom %}
+            <label for="matchNumber">Match Number:</label>
+            <input type="number" class="form-control mb-2" name="matchNumber" id="matchNumber" value="-1">
+            {% else %}
+            <input type="text" readonly class="form-control-plaintext d-none" name="matchNumber" id="matchNumber" value="{{match.matchNumber}}">
+            {% endif %}
+            <input type="text" readonly class="form-control-plaintext d-none" name="alliance" id="alliance" value="{{alliance}}">
+            {{ superScoutHeaders(custom) }}
+            <tbody>
+                {% if alliance != '2' %}
+                {{superScoutHelper(match.red1, true, 1, "red1", custom) }}
+                {{superScoutHelper(match.red2, true, 2, "red2", custom) }}
+                {{superScoutHelper(match.red3, true, 3, "red3", custom) }}
+                {% endif %}
+                {% if alliance != '1' %}
+                {{superScoutHelper(match.blue1, false, 1, "blue1", custom) }}
+                {{superScoutHelper(match.blue2, false, 2, "blue2", custom) }}
+                {{superScoutHelper(match.blue3, false, 3, "blue3", custom) }}
+                {% endif %}
+            </tbody>
+            </div>
+        </table>
+    </div>
+    <div class="col-4" style="background-repeat: no-repeat;
+    {% if alliance == '1' and scoringTable == '1' %}
+    background-size: 350px 300px; background-image: url({{ url_for('static', filename='images/redScoringSideAuto.png') }})
+    {% elif alliance == '2' and scoringTable == '1' %}
+    background-size: 300px 300px; background-image: url({{ url_for('static', filename='images/blueScoringSideAuto.png') }})
+    {% elif alliance == '1' and scoringTable == '0' %}
+    background-size: 300px 300px; background-image: url({{ url_for('static', filename='images/redNonScoringSideAuto.png') }})
+    {% elif alliance == '2' and scoringTable == '0' %}
+    background-size: 300px 300px; background-image: url({{ url_for('static', filename='images/blueNonScoringSideAuto.png') }})
+    {% endif %}
+    ;">
+        <table class="table table-bordered" style="background-color: rgba(0, 0, 0, 0);">
+            <th scope="col" colspan="3" class="text-center" style="background-color: rgba(0, 0, 0, 0);">Autonomous</th>
+            <tbody style="background-color: rgba(0, 0, 0, 0);">
+                    {% if (alliance == '1') %}
+                        {% if scoringTable == "1" %}
+                            {{ redAutonomousScoringSide(match.red1, match.red2, match.red3) }}
+                        {% else %}
+                            {{ redAutonomousNonScoringSide(match.red1, match.red2, match.red3) }}
+                        {% endif %}
+                    {% elif (alliance == '2') %}
+                        {% if scoringTable == "1" %}
+                            {{ blueAutonomousScoringSide(match.blue1, match.blue2, match.blue3) }}
+                        {% else %}
+                            {{ blueAutonomousNonScoringSide(match.blue1, match.blue2, match.blue3) }}
+                        {% endif %}
+                    {% endif %}
+            </tbody>
+        </table>
+    </div>
+        <div class="row">
+            <input type="submit" value="Submit Match SuperScout" class="btn btn-primary">
+        </div>
+    </form>
+    {% endmacro %}
+    {% macro matchSuperScoutData(match) %}
+<tr>
+    <th scope="row" class="text-center align-middle">{{ match.matchNumber }}</th>
+    <td class="text-center align-middle">{{ match.startPosition }}</th>
+    {% if match.midlineGrab == "1" %}
+    <td class="table-success text-center align-middle">
+        <i class="bi bi-check"></i>
+    </td>
+    {% elif match.midlineGrab == "-1" %}
+    <td class="table-danger text-center align-middle">
+        <i class="bi bi-x"></i>
+    </td>
+    {% else %}
+    <td class="table-secondary text-center align-middle">
+        N/A
+    </td>
+    {% endif %}
+    {% if match.broken == 0 %}
+    <td class="table-success text-center  align-middle">
+        No
+    </td>
+    {% else %}
+    <td class="table-danger text-center  align-middle">
+        BROKE
+    </td>
+    {% endif %}
+    <td scope="col">{{ match.notes }}</th>
+    <td scope="col" class="text-center align-middle
+    {% if match.overall == 'BAD' %}
+    table-danger
+    {% elif match.overall == 'BID' %}
+    table-warning
+    {% elif match.overall == 'MID' %}
+    table-secondary
+    {% elif match.overall == 'MOOD' %}
+    table-info
+    {% else %}
+    table-primary
+    {% endif %}
+    ">{{ match.overall }}</th>
+</tr>
+{% endmacro %}
+{% macro teamSuperScoutPreview(team, matchesPlayed) %}
+<div style="page-break-inside:avoid;">
+    <h4>{{ team.teamNumber }} - {{ team.teamName }} SuperScout Data</h4>
+    <table class="table table-bordered">
+        {{ superScoutPreviewHeaders() }}
+        <tbody>
+            {% for match in matchesPlayed %}
+            <tr>
+                {{ matchSuperScoutData(match) }}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+{% macro superScoutHeaders(custom) %}
+<thead class="thead-light">
+    <tr>  
+        <th scope="col" style="width: 5%">Driver Station</th>
+        {% if custom %}
+        <th scope="col" style="width: 8%">Team #</th>
+        {% else %}
+        <th scope="col" style="width: 5%">Team #</th>
+        {% endif %}
+        <th scope="col">Start Position</th>
+        <th scope="col">Broken</th>
+        <th scope="col">Notes</th>
+        <th scope="col">Overall</th>
+    </tr>
+</thead>
+{% endmacro %}
+{% macro superScoutPreviewHeaders() %}
+<thead class="thead-light">
+    <tr>
+        <th scope="col" class="text-center">Match #</th>
+        <th scope="col" class="text-center">Start Position</th>
+        <th scope="col" class="text-center">Autonomous</th>
+        <th scope="col" class="text-center">Broken?</th>
+        <th scope="col" class="text-center" style="width: 20%">Notes</th>
+        <th scope="col" class="text-center">Overall</th>
+    </tr> 
+</thead>
+{% endmacro %}

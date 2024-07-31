@@ -1,7 +1,7 @@
 {% macro teamInMatch(match, team, eventKey) %}
     {% if match.checkIfTeamScouted(team) %}
     <td class="table-success">
-        <a href="/teamMatchBreakdown/{{team}}/{{eventKey}}/{{match.matchNumber}}">
+        <a href="/teamMatchBreakdown/{{team}}/{{eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">
             {{team}}        
         </a>
     </td>
@@ -22,7 +22,7 @@
     {% if match.checkIsScouted() %}
         <th scope="row"><a href="/matchBreakdown/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></div>
     {% elif match.checkIfCanBePreviewed() %}
-        <th scope="row">{{match.matchNumber}}: <a href="/matchPreview/{{match.matchNumber}}/{{match.matchLevel}}">Preview</a></div>
+        <th scope="row">{{match.matchNumber}}: <a href="/matchPreview/{{match.matchNumber}}/{{match.matchLevel}}/simple">Preview</a></div>
     {% else %}
         <th scope="row">{{match.matchNumber}}</div>
     {% endif %}

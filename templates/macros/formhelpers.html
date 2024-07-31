@@ -17,3 +17,12 @@
         </datalist>
 </div>
 {% endmacro %}
+{% macro render_field_superscout(matchNumbers) %}
+<div class="col text-center">
+    <select name="matchNumber" id="matchNumber" class="form-control input-sm text-center">
+        {% for match in matchNumbers %}
+            <option class="form-control text-center" value="{{match}}">Match #{{match}}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endmacro %}

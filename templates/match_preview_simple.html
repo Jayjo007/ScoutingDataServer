@@ -1,11 +1,9 @@
 {% from 'macros/sitewide.html' import htmlHead, navBar %}
-{% from 'macros/macros.html' import teamPreview %}
+{% from 'macros/macros.html' import matchPrediction %}
 <!DOCTYPE html> 
 <head> 
-  {{ htmlHead() }}   
-  <title>
-    {{ match.renderEventLevel() }} {{ match.matchNumber }} Preview (detailed) 
-  </title>
+  {{ htmlHead() }}  
+  <title>{{ match.renderEventLevel() }} {{match.matchNumber}} Preview (simple)</title>  
 </head>
 <body>
       {{navBar()}}
@@ -16,26 +14,7 @@
                   {% if simple == True %}<a class="link-dark" href="/matchPreview/{{match.matchNumber}}/{{match.matchLevel}}/detailed">(Simple){% else %}<a class="link-dark" href="/matchPreview/{{match.matchNumber}}/{{match.matchLevel}}/simple">(Detailed){% endif %}</a></h3>
         </div>
         <div class="row">
-          <div class="row">
-            {{teamPreview("Red 1", tn.red1, red1)}}
-          </div>
-          <div class="row">
-            {{teamPreview("Red 2", tn.red2, red2)}}
-          </div>
-          <div class="row">
-            {{teamPreview("Red 3", tn.red3, red3)}}
-          </div>
-        </div>
-        <div class="row">
-          <div class="row">
-            {{teamPreview("Blue 1", tn.blue1, blue1)}}
-          </div>
-          <div class="row">
-            {{teamPreview("Blue 2", tn.blue2, blue2)}}
-          </div>
-          <div class="row">
-            {{teamPreview("Blue 3", tn.blue3, blue3)}}
-          </div>
+            {{matchPrediction(tn)}}
         </div>
       
       </div>
