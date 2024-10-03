@@ -397,11 +397,17 @@ def importMatchDataFromOtherServer():
                 data["autoAmp"] = row[5]
                 data["teleSpeaker"] = row[6]
                 data["teleAmp"] = row[7]
-                data["teleMiss"] = row[8]
-                data["trap"] = row[9]
-                data["climbStatus"] = row[10]
-                data["defense"] = row[11]
-                data["pass"] = row[12]
+                if (len(row) == 13):
+                    data["teleMiss"] = row[8]
+                    data["trap"] = row[9]
+                    data["climbStatus"] = row[10]
+                    data["defense"] = row[11]
+                    data["pass"] = row[12]
+                else:
+                    data["trap"] = row[8]
+                    data["climbStatus"] = row[9]
+                    data["defense"] = row[10]
+                    data["pass"] = row[11]
                 matchData = MatchData(data)
                 db.session.add(matchData)
                 db.session.commit()
@@ -732,7 +738,8 @@ class MatchData(db.Model):
         self.auto_amp = data["autoAmp"]
         self.tele_speaker = data["teleSpeaker"]
         self.tele_amp = data["teleAmp"]
-        self.missed_tele_speaker = data["teleMiss"]
+        if ("teleMiss" in data.keys()):
+            self.missed_tele_speaker = data["teleMiss"]
         self.trap = data["trap"]
         self.climb = data["climbStatus"]
         self.defense = data["defense"]
