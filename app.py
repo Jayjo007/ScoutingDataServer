@@ -18,8 +18,16 @@ PING_URL = "https://www.thebluealliance.com/api/v3/status"
 
 MAX_TEAM_NUMBER_LENGTH=5 
 
+dbUser = os.getenv("DB_USER")
+dbPass = os.getenv("DB_PASS")
+dbServer = os.getenv("DB_SERVER")
+dbPort = os.getenv("DB_PORT")
+dbName = os.getenv("DB_NAME")
+
+connString = f"mysql+pymysql://{dbUser}:{dbPass}@{dbServer}:{dbPort}/{dbName}"
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URI")
+app.config['SQLALCHEMY_DATABASE_URI'] = connString
 app.app_context().push()
 db.init_app(app)
 
