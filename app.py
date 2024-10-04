@@ -761,3 +761,6 @@ def setFieldSide(newEventLevel):
 from models import ActiveEventKey, MatchSchedule, TeamAtEvent, AutonomousData, SuperScoutRecord
 from models import MatchData, PitScoutRecord, TeamRecord
 from models.match_averages import MatchAverages
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)  # Bind to all IPs
