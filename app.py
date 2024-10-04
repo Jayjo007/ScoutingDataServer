@@ -1,9 +1,11 @@
 from flask import Flask, request, render_template, send_file, jsonify
+from extensions import db
 from flask_sqlalchemy import SQLAlchemy
 from wtforms import Form, StringField, validators, ValidationError, BooleanField
 from dotenv import load_dotenv
 import json, urllib, os, csv
-import requests, datetime
+import requests
+
 
 load_dotenv()
 
@@ -14,13 +16,21 @@ MATCH_SCHEDULE_URL = "https://www.thebluealliance.com/api/v3/event/{event_key}/m
 EVENT_TEAMS_URL = "https://www.thebluealliance.com/api/v3/event/{event_key}/teams/simple"
 PING_URL = "https://www.thebluealliance.com/api/v3/status"
 
-#CHANGE THIS IN 2025 WHEN 5 DIGIT TEAM NUMBERS EXIST
-MAX_TEAM_NUMBER_LENGTH=4 
+MAX_TEAM_NUMBER_LENGTH=5 
+
+dbUser = os.getenv("DB_USER")
+dbPass = os.getenv("DB_PASS")
+dbServer = os.getenv("DB_SERVER")
+dbPort = os.getenv("DB_PORT")
+dbName = os.getenv("DB_NAME")
+
+connString = f"mysql+pymysql://{dbUser}:{dbPass}@{dbServer}:{dbPort}/{dbName}"
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URI")
+app.config['SQLALCHEMY_DATABASE_URI'] = connString
 app.app_context().push()
-db = SQLAlchemy(app)
+db.init_app(app)
+
 
 def ping():
     try:
@@ -210,10 +220,13 @@ def displayAutonomousAnalysis():
     teams = []
     for team in teamsAtEvent:
         teams.append(TeamRecord.query.filter_by(teamNumber=team.teamNumber).first())
+    """
     sortedAmp = sorted(teams, key=lambda x: x.getAmpAutoAverages(), reverse=True)
     sortedCenter = sorted(teams, key=lambda x: x.getCenterAutoAverages(), reverse=True)
     sortedSource = sorted(teams, key=lambda x: x.getSourceAutoAverages(), reverse=True)
     return render_template("autonomous_analysis.html", ampTeams=sortedAmp, centerTeams=sortedCenter, sourceTeams=sortedSource, eventKey=getActiveEventKey())
+    """
+    return "Auto Analysis Placeholder"
 
 @app.route("/customMatchPreview", methods=["GET", "POST"])
 def customMatchPreviewLanding():
@@ -255,28 +268,21 @@ def clearEventData():
     db.session.commit()
     return "None"
 
-@app.route("/exportEventData")
+@app.route("/exportEventData") #TODO: Update this in 2025
 def exportEventDataToCSV():
-    # with open("outputs/Adjacency.csv") as fp:
-    #     csv = fp.read()
     with open('outputs/dataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(["Event Key", 
                          "Match Level", 
                          "Match #", 
                          "Team #", 
-                         "Auto Speaker", 
-                         "Auto Amp", 
-                         "Teleop Speaker", 
-                         "Teleop Amp", 
-                         "Missed Tele Speaker",
-                         "Trap", 
-                         "Climb", 
-                         "Defense", 
-                         "Passing",])
+                         #TODO: insert here
+                         "Defense",])
         scoutingData = MatchData.query.filter_by(eventKey=getActiveEventKey())
         for match in scoutingData:
-            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.auto_speaker, match.auto_amp, match.tele_speaker, match.tele_amp, match.missed_tele_speaker, match.trap, match.climb, match.defense, match.passing])
+            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber,\
+                             #TODO: insert game specific here
+                             match.defense])
     return send_file(
         'outputs/dataDump.csv',
         mimetype="text/csv",
@@ -284,7 +290,7 @@ def exportEventDataToCSV():
         as_attachment=True)
 
 @app.route("/exportQualitativeEventData")
-def exportSuperScoutDataToCSV():
+def exportSuperScoutDataToCSV(): #TODO: Update this in 2025
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
     with open('outputs/qualitativeDataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
@@ -293,13 +299,13 @@ def exportSuperScoutDataToCSV():
                          "Match Level", 
                          "Match #", 
                          "Team #", 
-                         "Starting Position", 
                          "Broken", 
                          "Notes", 
                          "Overall"])
         scoutingData = SuperScoutRecord.query.filter_by(eventKey=getActiveEventKey())
         for match in scoutingData:
-            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.startPosition, match.broken, match.notes, match.overall])
+            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber,\
+                              match.broken, match.notes, match.overall])
     return send_file(
         'outputs/qualitativeDataDump.csv',
         mimetype="text/csv",
@@ -314,16 +320,8 @@ def exportAutonomousDataToCSV():
         writer = csv.writer(csv_file)
         writer.writerow(["Event Key", 
                          "Match Level", 
-                         "Match #", 
-                         "Team #", 
-                         "note_1", 
-                         "note_2", 
-                         "note_3", 
-                         "note_4", 
-                         "note_5", 
-                         "note_6", 
-                         "note_7", 
-                         "note_8"])
+                         "Match #" #TODO: insert gamespecific auto data here
+                         ])
         scoutingData = AutonomousData.query.filter_by(eventKey=getActiveEventKey())
         for match in scoutingData:
             writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.note_1, match.note_2, match.note_3, match.note_4, match.note_5, match.note_6, match.note_7, match.note_8])
@@ -363,14 +361,16 @@ def importTabletData():
                 data["event"] = row[1]
                 data["matchNumber"] = row[2]
                 data["matchLevel"] = getCurrentMatchLevel()
+                """ TODO: update with 2025 game
                 data["autoSpeaker"] = row[3]
                 data["autoAmp"] = row[4]
                 data["teleSpeaker"] = row[5]
                 data["teleAmp"] = row[6]
                 data["trap"] = row[7]
                 data["climbStatus"] = row[8]
-                data["defense"] = row[9]
                 data["pass"] = row[10]
+                """
+                data["defense"] = row[9]
                 data["tablet"] = row[11]
                 data["scouter"] = row[12]
                 matchData = MatchData(data)
@@ -393,6 +393,7 @@ def importMatchDataFromOtherServer():
                 data["matchLevel"] = row[1]
                 data["matchNumber"] = row[2]
                 data["teamNumber"] = row[3]
+                """ TODO: 2025 game data
                 data["autoSpeaker"] = row[4]
                 data["autoAmp"] = row[5]
                 data["teleSpeaker"] = row[6]
@@ -408,6 +409,7 @@ def importMatchDataFromOtherServer():
                     data["climbStatus"] = row[9]
                     data["defense"] = row[10]
                     data["pass"] = row[11]
+                """
                 matchData = MatchData(data)
                 db.session.add(matchData)
                 db.session.commit()
@@ -425,7 +427,7 @@ def importSuperScoutDataFromOtherServer():
                 print("Processing")
                 matchData = SuperScoutRecord(row[3], row[0], row[2])
                 matchData.matchLevel = row[1]
-                matchData.startPosition = row[4]
+                #matchData.startPosition = row[4] TODO: update
                 matchData.broken = row[5]
                 matchData.notes = row[6]
                 matchData.overall = row[7]
@@ -443,6 +445,7 @@ def importAutonomousDataFromOtherServer():
             if (len(row) >= 12 and row[0] == getActiveEventKey() and row[0] != "Event Key"):
                 print("Processing")
                 matchData = AutonomousData(row[3], row[2], row[0], row[1])
+                """TODO: 2025 Game Specific
                 matchData.note_1 = row[4]
                 matchData.note_2 = row[5]
                 matchData.note_3 = row[6]
@@ -451,6 +454,7 @@ def importAutonomousDataFromOtherServer():
                 matchData.note_6 = row[9]
                 matchData.note_7 = row[10]
                 matchData.note_8 = row[11]
+                """
                 db.session.add(matchData)
                 db.session.commit()
     return "None"
@@ -542,26 +546,18 @@ def processSuperScout(request, dsN):
     teamNumber = request.form.get(dsN+"TeamNumber")
     record = SuperScoutRecord(teamNumber, getActiveEventKey(), request.form.get("matchNumber"))
     record.matchLevel = getCurrentMatchLevel()
-    record.startPosition = request.form.get(dsN+"Position")
-    #record.midlineGrab = request.form.get(dsN+"Midline")
-    record.midlineGrab = None
-    record.scoreLevel = None
-    #record.intake = request.form.get(dsN+"Intake")
-    record.intake = None
+    #TODO: 2025 specific
     broken = request.form.get(dsN+"Broken")
     if (broken=="true"):
         record.broken = 1
     else:
         record.broken = 0
-    #record.tippy = request.form.get(dsN+"Tippy")
-    #record.pushable = request.form.get(dsN+"Pushable")
-    record.tippy = None
-    record.pushable = None
     record.notes = request.form.get(dsN+"Notes")
     record.overall = request.form.get(dsN+"Overall")
     db.session.add(record)
     db.session.commit()
     autoData = AutonomousData(teamNumber, request.form.get("matchNumber"), getActiveEventKey(), getCurrentMatchLevel())
+    """TODO: 2025 specific
     if (request.form.get("note1") == teamNumber):
         autoData.note_1 = 1
     else:
@@ -594,10 +590,9 @@ def processSuperScout(request, dsN):
         autoData.note_8 = 1
     else:
         autoData.note_8 = 0
+    """
     db.session.add(autoData)
-    db.session.commit()
-
-    
+    db.session.commit()   
 
 def validate_preview(form, field):
     if int(field.data) not in getEventTeams():
@@ -609,6 +604,7 @@ def validate_matchNumber(form, field):
     
 def addAllianceAverages(team1, team2, team3):
     totalAverages = MatchAverages(None)
+    """TODO: 2025 specific
     totalAverages.auto_speaker = team1.auto_speaker + team2.auto_speaker + team3.auto_speaker
     totalAverages.auto_amp = team1.auto_amp + team2.auto_amp + team3.auto_amp
     totalAverages.tele_speaker = team1.tele_speaker + team2.tele_speaker + team3.tele_speaker
@@ -618,6 +614,7 @@ def addAllianceAverages(team1, team2, team3):
         totalAverages.trap = 3
     totalAverages.climb = (team1.climb + team2.climb + team3.climb) / 100
     totalAverages.passing = team1.passing + team2.passing + team3.passing
+    """
     return totalAverages
 
 
@@ -629,12 +626,10 @@ class CustomMatchForm(Form):
     blue2 = StringField('Blue 2', [validators.Length(max=MAX_TEAM_NUMBER_LENGTH), validators.DataRequired(), validate_preview])
     blue3 = StringField('Blue 3', [validators.Length(max=MAX_TEAM_NUMBER_LENGTH), validators.DataRequired(), validate_preview])
     simple = BooleanField('Simple?')
-
-    
+   
 class SelectSuperScoutForm(Form):
     matchNumber = StringField('Match Number', [validators.Length(max=3), validators.DataRequired(), validate_matchNumber])
     
-
 class TeamNames():
     def __init__(self, red1, red2, red3, blue1, blue2, blue3):
         self.red1 = red1
@@ -667,357 +662,7 @@ class TeamNames():
             blue3Averages = MatchAverages(self.blue3.teamNumber)
         #todo: this i dont feel like doing rn
         return addAllianceAverages(blue1Averages, blue2Averages, blue3Averages)
-
-class PitScoutRecord(db.Model):
-    __tablename__ = 'pitdata'
-    teamNumber = db.Column(db.String(50), primary_key=True)
-    eventKey = db.Column(db.String(50), primary_key=True)
-    programmingLanguage = db.Column(db.String(50))
-    drivetrain = db.Column(db.String(50))
-    driveteam = db.Column(db.Integer())
-    def __init__(self, data):
-        self.teamNumber = data["teamNumber"]
-        self.eventKey = data["event"]
-        self.programmingLanguage = data["programmingLanguage"]
-        self.drivetrain = data["drivetrainType"]
-        self.driveteam = data["driveteam"]
-
-    def __str__(self):
-        return self.teamNumber
-
-class SuperScoutRecord(db.Model):
-    __tablename__ = 'superscoutdata'
-    teamNumber = db.Column(db.String(50), primary_key=True)
-    eventKey = db.Column(db.String(50), primary_key=True)
-    matchNumber = db.Column(db.Integer(), primary_key=True)
-    matchLevel = db.Column(db.String(5))
-    startPosition = db.Column(db.String(10))
-    midlineGrab = db.Column(db.String(10))
-    scoreLevel = db.Column(db.String(10))
-    intake = db.Column(db.String(10))
-    broken = db.Column(db.Integer())
-    tippy = db.Column(db.String(15))
-    pushable = db.Column(db.String(15))
-    notes = db.Column(db.String(255))
-    overall = db.Column(db.String(10))
-    def __init__(self, teamNumber, eventKey, matchNumber): 
-        self.teamNumber = teamNumber
-        self.eventKey = eventKey
-        self.matchNumber = matchNumber
-
-    def __str__(self):
-        return self.teamNumber
-
-
-class MatchData(db.Model):
-    __tablename__ = 'match_data'
-    teamNumber = db.Column(db.String(10), primary_key=True)
-    eventKey = db.Column(db.String(15), primary_key=True)
-    matchNumber = db.Column(db.Integer(), primary_key=True)
-    matchLevel = db.Column(db.String(50), primary_key=True)
-    auto_speaker = db.Column(db.Integer())
-    auto_amp = db.Column(db.Integer())
-    tele_speaker = db.Column(db.Integer())
-    tele_amp = db.Column(db.Integer())
-    missed_tele_speaker = db.Column(db.Integer())
-    trap = db.Column(db.Integer())
-    climb = db.Column(db.Integer())
-    defense = db.Column(db.Integer())
-    auto_leave = db.Column(db.Integer())
-    passing = db.Column(db.Integer())
-    tablet = db.Column(db.String(3))
-    scouter = db.Column(db.String(50))
-    timestamp = db.Column(db.String(50))
-
-    def __init__(self, data):
-        self.teamNumber = data["teamNumber"]
-        self.eventKey = data["event"]
-        self.matchNumber = data["matchNumber"]
-        self.matchLevel = getCurrentMatchLevel()
-        self.auto_speaker = data["autoSpeaker"]
-        self.auto_amp = data["autoAmp"]
-        self.tele_speaker = data["teleSpeaker"]
-        self.tele_amp = data["teleAmp"]
-        if ("teleMiss" in data.keys()):
-            self.missed_tele_speaker = data["teleMiss"]
-        self.trap = data["trap"]
-        self.climb = data["climbStatus"]
-        self.defense = data["defense"]
-        self.auto_leave = 1
-        self.passing = data["pass"]
-        self.tablet = data["tablet"]
-        self.scouter = data["scouter"]
-        self.timestamp = datetime.datetime.now()
-
-    def __str__(self):
-        return self.teamNumber
     
-    def renderEventLevel(self):
-        if (self.matchLevel=='qm'):
-            return "Qualification Match"
-        elif (self.matchLevel=='f'):
-            return "Finals Match"
-        elif (self.matchLevel=="sf"):
-            return "Playoff Match"
-        else:
-            return "Custom Match"
-    
-class TeamRecord(db.Model):
-    __tablename__ = 'teams'
-    teamNumber = db.Column(db.String(50), primary_key = True)
-    teamName = db.Column(db.String(255))
-    def __init__(self, teamNumber, teamName):
-        self.teamNumber = teamNumber
-        self.teamName = teamName
-    def hasPitScoutData(self):
-        return PitScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count() > 0
-    def hasSuperScoutData(self):
-        return SuperScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count() > 0
-    def getMatchesPlayed(self):
-        return MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count()
-    def getSuperScoutMatchesPlayed(self):
-        return SuperScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count()
-    def getMatchesToPlay(self):
-        count = 0
-        count += MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel='qm', red1=self.teamNumber).count()
-        count += MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel='qm', red2=self.teamNumber).count()
-        count += MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel='qm', red3=self.teamNumber).count()
-        count += MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel='qm', blue1=self.teamNumber).count()
-        count += MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel='qm', blue2=self.teamNumber).count()
-        count += MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel='qm', blue3=self.teamNumber).count()
-        return count
-    def allMatchesScouted(self):
-        if self.getMatchesToPlay() == 0:
-            return False
-        else:
-            return self.getMatchesPlayed() == self.getMatchesToPlay()
-    def allMatchesSuperScouted(self):
-        if self.getMatchesToPlay() == 0:
-            return False
-        else:
-            return self.getSuperScoutMatchesPlayed() == self.getMatchesToPlay()
-    def getPitScoutData(self):
-        if (self.hasPitScoutData()):
-            return PitScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).first()
-        else:
-            return None
-    def getAverages(self):
-        averages = MatchAverages(self.teamNumber)
-        if MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count() > 0:
-            for match in MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).all():
-                averages.addAverage(match)
-            averages.climb*=100
-            #averages.climb = str(averages.climb)+"%"
-            averages.auto_leave*=100
-            #averages.auto_leave = str(averages.auto_leave)+"%"
-            return averages
-        else:
-            return None
-    def getAmpAutoAverages(self):
-        q = MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="AMP")
-        if q.count() > 0:
-            count = 0
-            sum = 0
-            for match in q:
-                count+=1
-                sum+=match.auto_speaker
-            return sum/count
-        else:
-            return 0
-    
-    def getAmpAutoCount(self):
-        return MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="AMP").count()
-    
-    def getCenterAutoCount(self):
-        return MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="CENTER").count()
-
-    def getSourceAutoCount(self):
-        return MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="SOURCE").count()
-
-    def getCenterAutoAverages(self):
-        q = MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="CENTER")
-        if q.count() > 0:
-            count = 0
-            sum = 0
-            for match in q:
-                count+=1
-                sum+=match.auto_speaker
-            return sum/count
-        else:
-            return 0
-    def getSourceAutoAverages(self):
-        q = MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="SOURCE")
-        if q.count() > 0:
-            count = 0
-            sum = 0
-            for match in q:
-                count+=1
-                sum+=match.auto_speaker
-            return sum/count
-        else:
-            return 0
-
-
-class ActiveEventKey(db.Model):
-    __tablename__ = 'activeeventkey'
-    index = db.Column(db.Integer(), primary_key = True)
-    activeEventKey = db.Column(db.String(50))
-
-    def __init__(self, activeEventKey):
-        self.index = 1
-        self.activeEventKey = activeEventKey
-
-class MatchSchedule(db.Model):
-    __tablename__ = 'match_schedule'
-    eventKey = db.Column(db.String(50), primary_key = True)
-    matchNumber = db.Column(db.Integer(), primary_key = True)
-    matchLevel = db.Column(db.String(50), primary_key = True)
-    red1 = db.Column(db.String(50))
-    red2 = db.Column(db.String(50))
-    red3 = db.Column(db.String(50))
-    blue1 = db.Column(db.String(50))
-    blue2 = db.Column(db.String(50))
-    blue3 = db.Column(db.String(50))
-
-    def __init__(self, eventKey, matchNumber, matchLevel, red1, red2, red3, blue1, blue2, blue3):
-        self.eventKey = eventKey
-        self.matchNumber = matchNumber
-        self.matchLevel = matchLevel
-        self.red1 = red1
-        self.red2 = red2
-        self.red3 = red3
-        self.blue1 = blue1
-        self.blue2 = blue2
-        self.blue3 = blue3
-
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-    
-    def checkIsScouted(self):
-        if MatchData.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel).count() > 0:
-            return True
-        else:
-            return False
-    def checkIfTeamScouted(self, team):
-        if MatchData.query.filter_by(eventKey=self.eventKey, matchNumber=self.matchNumber, matchLevel=self.matchLevel, teamNumber=team).count() > 0:
-            return True
-        else:
-            return False
-    def checkIfTeamHasPlayedMatch(self, team):
-        if MatchData.query.filter_by(eventKey=self.eventKey, teamNumber=team).count() > 0:
-            return True
-        else:
-            return False
-    def checkIfCanBePreviewed(self):
-        if self.checkIfTeamHasPlayedMatch(self.red1):
-            return True
-        if self.checkIfTeamHasPlayedMatch(self.red2):
-            return True
-        if self.checkIfTeamHasPlayedMatch(self.red3):
-            return True
-        if self.checkIfTeamHasPlayedMatch(self.blue1):
-            return True
-        if self.checkIfTeamHasPlayedMatch(self.blue2):
-            return True
-        if self.checkIfTeamHasPlayedMatch(self.blue3):
-            return True     
-        return False  
-    def renderEventLevel(self):
-        if (self.matchLevel=='qm'):
-            return "Qualification Match"
-        elif (self.matchLevel=='f'):
-            return "Finals Match"
-        else:
-            return "Playoff Match"
-    
-class TeamAtEvent(db.Model):
-    __tablename__ = 'teamatevent'
-    eventKey = db.Column(db.String(50), primary_key = True)
-    teamNumber = db.Column(db.Integer(), primary_key = True)
-    def __init__(self, teamNumber, eventKey):
-        self.teamNumber = teamNumber
-        self.eventKey = eventKey
-
-class DataValidation(db.Model):
-    __tablename__ = 'data_validation'
-    eventKey = db.Column(db.String(15), primary_key=True)
-    matchNumber = db.Column(db.Integer(), primary_key=True)
-    matchLevel = db.Column(db.String(50), primary_key=True)
-    alliance = db.Column(db.Integer(), primary_key=True)
-    auto_speaker = db.Column(db.Integer())
-    auto_amp = db.Column(db.Integer())
-    tele_speaker = db.Column(db.Integer())
-    tele_amp = db.Column(db.Integer())
-    trap = db.Column(db.Integer())
-    climb = db.Column(db.Integer())
-    defense = db.Column(db.Integer())
-    auto_leave = db.Column(db.Integer())
-    
-
-class AutonomousData(db.Model):
-    __tablename__ = "autonomous_data"
-    teamNumber = db.Column(db.String(50), primary_key=True)
-    matchNumber = db.Column(db.Integer(), primary_key=True)
-    matchLevel = db.Column(db.String(50), primary_key=True)
-    eventKey = db.Column(db.String(50), primary_key=True)
-    note_1 = db.Column(db.Integer())
-    note_2 = db.Column(db.Integer())
-    note_3 = db.Column(db.Integer())
-    note_4 = db.Column(db.Integer())
-    note_5 = db.Column(db.Integer())
-    note_6 = db.Column(db.Integer())
-    note_7 = db.Column(db.Integer())
-    note_8 = db.Column(db.Integer())
-    def __init__(self, teamNumber, matchNumber, eventKey, matchLevel):
-        self.teamNumber = teamNumber
-        self.matchNumber = matchNumber
-        self.eventKey = eventKey
-        self.matchLevel = matchLevel
-
-class MatchAverages():
-    def __init__(self, teamNumber):
-        self.teamNumber = teamNumber
-        self.auto_speaker = 0.0
-        self.auto_amp = 0.0
-        self.tele_speaker = 0.0
-        self.tele_amp = 0.0
-        self.missed_tele_speaker = 0.0
-        self.trap = 0
-        self.climb = 0.00
-        self.defense = "N/A"
-        self.auto_leave = 0.00
-        self.count = 0
-        self.climbAttempts = 0
-        self.passing = 0
-    def addAverage(self, matchData):
-        self.auto_speaker=(self.auto_speaker*self.count+matchData.auto_speaker)/(self.count+1)
-        self.auto_amp=(self.auto_amp*self.count+matchData.auto_amp)/(self.count+1)
-        self.tele_speaker=(self.tele_speaker*self.count+matchData.tele_speaker)/(self.count+1)
-        self.tele_amp=(self.tele_amp*self.count+matchData.tele_amp)/(self.count+1)
-        self.missed_tele_speaker=(self.missed_tele_speaker*self.count+matchData.missed_tele_speaker)/(self.count+1)
-        self.trap=(self.trap*self.count+matchData.trap)/(self.count+1)
-        if (matchData.climb > 0):
-            self.climb=(self.climb*self.climbAttempts+1)/(self.climbAttempts+1)
-            self.climbAttempts+=1
-        elif (matchData.climb == -1):
-            self.climb=(self.climb*self.climbAttempts)/(self.climbAttempts+1)
-            self.climbAttempts+=1
-        if (matchData.auto_leave != 0):
-            self.auto_leave=(self.auto_leave*self.count+1)/(self.count+1)
-        else:
-            self.auto_leave=(self.auto_leave*self.count)/(self.count+1)
-        self.passing = (self.passing*self.count+matchData.passing)/(self.count+1)
-        self.count += 1
-    def scoreMatch(self):
-        score = 0
-        score += self.auto_speaker * 5
-        score += self.auto_amp * 2
-        score += self.tele_speaker * 2
-        score += self.auto_amp
-        score += self.trap * 5
-        score += self.climb * 3
-        score += self.auto_leave * 2
-        return score
 
 def getEventTeams():
     teams = set()
@@ -1041,7 +686,6 @@ def importTeamNames():
         if len(teamPage) > 0:
             for team in teamPage:
                 newTeam = TeamRecord(team["team_number"], team["nickname"])
-                
                 results = TeamRecord.query.filter_by(teamNumber=newTeam.teamNumber)
                 if (results.count() > 0):
                     if not results.first().teamName == newTeam.teamName:
@@ -1081,18 +725,8 @@ def getMatchSchedule():
         matchRecord = MatchSchedule(eventKey, str(matchNumber), match["comp_level"], red1, red2, red3, blue1, blue2, blue3)
         db.session.add(matchRecord)   
     db.session.commit()
-
-
     
-def getActiveEventKey():
-    if (not ActiveEventKey.query.first() == None):
-        return ActiveEventKey.query.first().activeEventKey
-    return "Undefined"
 
-def getCurrentMatchLevel():
-    if (not ActiveEventKey.query.filter_by(index=2).first() == None):
-        return ActiveEventKey.query.filter_by(index=2).first().activeEventKey
-    return "qm"
 
 def getSideOfField():
     if (not ActiveEventKey.query.filter_by(index=3).first() == None):
@@ -1123,3 +757,16 @@ def setFieldSide(newEventLevel):
         newLevel.index = 3
         db.session.add(newLevel)
     db.session.commit()
+
+
+from models import ActiveEventKey
+from utils import *
+from models import MatchSchedule, TeamAtEvent, AutonomousData, SuperScoutRecord
+from models import MatchData, PitScoutRecord, TeamRecord
+from models.match_averages import MatchAverages
+
+with app.app_context():
+    db.create_all()
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)  # Bind to all IPs
