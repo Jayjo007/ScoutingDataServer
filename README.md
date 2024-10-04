@@ -12,10 +12,6 @@ This is a Flask application designed for handling scouting data for FIRST Roboti
 - [Contributing](#contributing)
 - [License](#license)
 
-## Features
-
-- [List key features of your application, e.g., "User authentication", "Real-time updates", etc.]
-
 ## Technologies Used
 
 - **Flask**: A micro web framework for Python.
