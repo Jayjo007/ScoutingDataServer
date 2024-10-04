@@ -1,4 +1,4 @@
-from app import db  # Adjust the import based on your project structure
+from extensions import db  # Adjust the import based on your project structure
 
 class DataValidation(db.Model):
     __tablename__ = 'data_validation'

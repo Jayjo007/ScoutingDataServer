@@ -1,4 +1,5 @@
-from app import db, getActiveEventKey
+from extensions import db
+from utils import getActiveEventKey
 from .superscoutrecord import SuperScoutRecord
 from .pitscoutrecord import PitScoutRecord
 from .matchdata import MatchData

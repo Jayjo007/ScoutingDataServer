@@ -1,3 +1,4 @@
+from extensions import db
 from .active_event_key import ActiveEventKey
 from .match_schedule import MatchSchedule
 from .team_at_event import TeamAtEvent

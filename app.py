@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, send_file, jsonify
+from extensions import db
 from flask_sqlalchemy import SQLAlchemy
 from wtforms import Form, StringField, validators, ValidationError, BooleanField
 from dotenv import load_dotenv
@@ -20,8 +21,8 @@ MAX_TEAM_NUMBER_LENGTH=5
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URI")
 app.app_context().push()
-db = SQLAlchemy(app)
-db.metadata.create_all()
+db.init_app(app)
+
 
 def ping():
     try:
@@ -717,15 +718,7 @@ def getMatchSchedule():
         db.session.add(matchRecord)   
     db.session.commit()
     
-def getActiveEventKey():
-    if (not ActiveEventKey.query.first() == None):
-        return ActiveEventKey.query.first().activeEventKey
-    return "Undefined"
 
-def getCurrentMatchLevel():
-    if (not ActiveEventKey.query.filter_by(index=2).first() == None):
-        return ActiveEventKey.query.filter_by(index=2).first().activeEventKey
-    return "qm"
 
 def getSideOfField():
     if (not ActiveEventKey.query.filter_by(index=3).first() == None):
@@ -758,9 +751,14 @@ def setFieldSide(newEventLevel):
     db.session.commit()
 
 
-from models import ActiveEventKey, MatchSchedule, TeamAtEvent, AutonomousData, SuperScoutRecord
+from models import ActiveEventKey
+from utils import *
+from models import MatchSchedule, TeamAtEvent, AutonomousData, SuperScoutRecord
 from models import MatchData, PitScoutRecord, TeamRecord
 from models.match_averages import MatchAverages
+
+with app.app_context():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)  # Bind to all IPs

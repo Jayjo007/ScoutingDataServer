@@ -1,4 +1,4 @@
-from app import db  # Adjust the import based on your project structure
+from extensions import db  # Adjust the import based on your project structure
 from .matchdata import MatchData  # Assuming MatchData is in data_validation.py
 
 class MatchSchedule(db.Model):

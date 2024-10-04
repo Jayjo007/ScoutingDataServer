@@ -1,4 +1,5 @@
-from app import db, getCurrentMatchLevel
+from extensions import db
+from utils import getCurrentMatchLevel
 from datetime import datetime
 
 class MatchData(db.Model):

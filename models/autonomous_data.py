@@ -1,4 +1,4 @@
-from app import db  # Adjust the import based on your project structure
+from extensions import db  # Adjust the import based on your project structure
 
 class AutonomousData(db.Model):
     __tablename__ = "autonomous_data"
