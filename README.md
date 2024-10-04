@@ -26,8 +26,8 @@ To run this application, you need to have Python and MySQL installed on your sys
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/yourusername/your-flask-app.git
-   cd your-flask-app
+   git clone https://github.com/Comets3357/ScoutingDataServer.git
+   cd ScoutingDataServer
    ```
 
 2. **Set up a virtual environment (optional but recommended)**:
