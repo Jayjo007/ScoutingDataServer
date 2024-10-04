@@ -4,7 +4,6 @@ This is a Flask application designed for handling scouting data for FIRST Roboti
 
 ## Table of Contents
 
-- [Features](#features)
 - [Technologies Used](#technologies-used)
 - [Installation](#installation)
 - [Configuration](#configuration)
