@@ -1,4 +1,4 @@
-# Flask App
+# Scouting Data Server
 
 This is a Flask application designed for handling scouting data for FIRST Robotics Competition teams. 
 
