@@ -8,3 +8,4 @@ from .superscoutrecord import SuperScoutRecord
 from .matchdata import MatchData
 from .pitscoutrecord import PitScoutRecord
 from .team_record import TeamRecord
+from .humanplayerdata import HumanPlayerData

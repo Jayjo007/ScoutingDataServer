@@ -2,7 +2,24 @@ class MatchAverages():
     def __init__(self, teamNumber):
         self.teamNumber = teamNumber
         #insert gamespecific
-        self.defense = "N/A"
+        self.aL4C = 0
+        self.aL3C = 0
+        self.aL2C = 0
+        self.aL1C = 0
+        self.tL4C = 0
+        self.tL3C = 0
+        self.tL2C = 0
+        self.tL1C = 0
+        self.aL3A = 0
+        self.aL2A = 0
+        self.tL3A = 0
+        self.tL2A = 0
+        self.aNet = 0
+        self.tNet = 0
+        self.aProc = 0
+        self.tProc = 0
+        self.endgameShallow = 0
+        self.endgameDeep = 0
         
 
     def addAverage(self, matchData):
@@ -33,13 +50,18 @@ class MatchAverages():
 
     def scoreMatch(self):
         score = 0
-        """
-        score += self.auto_speaker * 5
-        score += self.auto_amp * 2
-        score += self.tele_speaker * 2
-        score += self.auto_amp
-        score += self.trap * 5
-        score += self.climb * 3
-        score += self.auto_leave * 2
-        """
+        score += self.aL1C * 3
+        score += self.aL2C * 4
+        score += self.aL3C * 6
+        score += self.aL4C * 7
+        score += self.tL1C * 2
+        score += self.tL2C * 3
+        score += self.tL3C * 4
+        score += self.tL4C * 5
+        score += self.aNet * 4
+        score += self.aProc * 6
+        score += self.tProc * 6
+        score += self.tNet * 4
+        score += self.endgameShallow * 6
+        score += self.endgameDeep * 12
         return score

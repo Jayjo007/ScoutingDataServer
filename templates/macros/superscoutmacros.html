@@ -1,4 +1,4 @@
-{% from 'macros/autonomous_scouting_macros.html' import redAutonomousScoringSide, blueAutonomousScoringSide, redAutonomousNonScoringSide, blueAutonomousNonScoringSide%}
+{% from 'macros/human_player_scouting_macros.html' import allianceSelectOptions%}
 {% macro superScoutHelper(team, red, dsN, dsId, custom) %}
 <tr>
     {% if (red==true) %}
@@ -71,33 +71,19 @@
             </div>
         </table>
     </div>
-    <div class="col-4" style="background-repeat: no-repeat;
-    {% if alliance == '1' and scoringTable == '1' %}
-    background-size: 350px 300px; background-image: url({{ url_for('static', filename='images/redScoringSideAuto.png') }})
-    {% elif alliance == '2' and scoringTable == '1' %}
-    background-size: 300px 300px; background-image: url({{ url_for('static', filename='images/blueScoringSideAuto.png') }})
-    {% elif alliance == '1' and scoringTable == '0' %}
-    background-size: 300px 300px; background-image: url({{ url_for('static', filename='images/redNonScoringSideAuto.png') }})
-    {% elif alliance == '2' and scoringTable == '0' %}
-    background-size: 300px 300px; background-image: url({{ url_for('static', filename='images/blueNonScoringSideAuto.png') }})
-    {% endif %}
-    ;">
+    <div class="col-4">
         <table class="table table-bordered" style="background-color: rgba(0, 0, 0, 0);">
-            <th scope="col" colspan="3" class="text-center" style="background-color: rgba(0, 0, 0, 0);">Autonomous</th>
+            <th scope="col" colspan="3" class="text-center" style="background-color: rgba(0, 0, 0, 0);">Human Player</th>
             <tbody style="background-color: rgba(0, 0, 0, 0);">
-                    {% if (alliance == '1') %}
-                        {% if scoringTable == "1" %}
-                            {{ redAutonomousScoringSide(match.red1, match.red2, match.red3) }}
-                        {% else %}
-                            {{ redAutonomousNonScoringSide(match.red1, match.red2, match.red3) }}
+                <tr>
+                    <td>    
+                        {% if (alliance == '1') %}
+                        {{ allianceSelectOptions(match.red1, match.red2, match.red3) }}
+                        {% elif (alliance == '2') %}
+                        {{ allianceSelectOptions(match.blue1, match.blue2, match.blue3) }}
                         {% endif %}
-                    {% elif (alliance == '2') %}
-                        {% if scoringTable == "1" %}
-                            {{ blueAutonomousScoringSide(match.blue1, match.blue2, match.blue3) }}
-                        {% else %}
-                            {{ blueAutonomousNonScoringSide(match.blue1, match.blue2, match.blue3) }}
-                        {% endif %}
-                    {% endif %}
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
