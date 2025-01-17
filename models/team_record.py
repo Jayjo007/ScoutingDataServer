@@ -46,61 +46,24 @@ class TeamRecord(db.Model):
             return PitScoutRecord.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).first()
         else:
             return None
-    """ Game specific to replace
+        
+    def getAverages(self):
+        averages: MatchAverages = MatchAverages(self.teamNumber)
+        if MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count() > 0:
+            for match in MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).all():
+                averages.addAverage(match)
+            averages.endgameShallow*=100
+            #averages.climb = str(averages.climb)+"%"
+            averages.endgameDeep*=100
+            #averages.auto_leave = str(averages.auto_leave)+"%"
+            return averages
+        else:
+            return None
     def getAverages(self):
         averages = MatchAverages(self.teamNumber)
         if MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).count() > 0:
             for match in MatchData.query.filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber).all():
                 averages.addAverage(match)
-            averages.climb*=100
-            #averages.climb = str(averages.climb)+"%"
-            averages.auto_leave*=100
-            #averages.auto_leave = str(averages.auto_leave)+"%"
             return averages
         else:
             return None
-    def getAmpAutoAverages(self):
-        q = MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="AMP")
-        if q.count() > 0:
-            count = 0
-            sum = 0
-            for match in q:
-                count+=1
-                sum+=match.auto_speaker
-            return sum/count
-        else:
-            return 0
-    
-    def getAmpAutoCount(self):
-        return MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="AMP").count()
-    
-    def getCenterAutoCount(self):
-        return MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="CENTER").count()
-
-    def getSourceAutoCount(self):
-        return MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="SOURCE").count()
-
-    def getCenterAutoAverages(self):
-        q = MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="CENTER")
-        if q.count() > 0:
-            count = 0
-            sum = 0
-            for match in q:
-                count+=1
-                sum+=match.auto_speaker
-            return sum/count
-        else:
-            return 0
-        
-    def getSourceAutoAverages(self):
-        q = MatchData.query.join(SuperScoutRecord, db.and_(MatchData.matchNumber==SuperScoutRecord.matchNumber, MatchData.teamNumber==SuperScoutRecord.teamNumber)).filter_by(eventKey=getActiveEventKey(), teamNumber=self.teamNumber, startPosition="SOURCE")
-        if q.count() > 0:
-            count = 0
-            sum = 0
-            for match in q:
-                count+=1
-                sum+=match.auto_speaker
-            return sum/count
-        else:
-            return 0
-    """

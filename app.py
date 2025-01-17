@@ -214,20 +214,6 @@ def displayTeamList():
         teams.append(TeamRecord.query.filter_by(teamNumber=team.teamNumber).first())
     return render_template("team_data_lookup.html", teams=teams, eventKey=getActiveEventKey())
 
-@app.route("/autonomousAnalysis")
-def displayAutonomousAnalysis():
-    teamsAtEvent = TeamAtEvent.query.filter_by(eventKey=getActiveEventKey()).order_by(TeamAtEvent.teamNumber)
-    teams = []
-    for team in teamsAtEvent:
-        teams.append(TeamRecord.query.filter_by(teamNumber=team.teamNumber).first())
-    """
-    sortedAmp = sorted(teams, key=lambda x: x.getAmpAutoAverages(), reverse=True)
-    sortedCenter = sorted(teams, key=lambda x: x.getCenterAutoAverages(), reverse=True)
-    sortedSource = sorted(teams, key=lambda x: x.getSourceAutoAverages(), reverse=True)
-    return render_template("autonomous_analysis.html", ampTeams=sortedAmp, centerTeams=sortedCenter, sourceTeams=sortedSource, eventKey=getActiveEventKey())
-    """
-    return "Auto Analysis Placeholder"
-
 @app.route("/customMatchPreview", methods=["GET", "POST"])
 def customMatchPreviewLanding():
     form = CustomMatchForm(request.form)
