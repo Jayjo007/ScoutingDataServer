@@ -9,9 +9,6 @@
         function(data) { }); return false; }); }); </script>  
     <script type="text/javascript"> $(function() { $("#importSuperScoutData").click(function (event) { $.getJSON('/importSuperScoutData', { },
         function(data) { }); return false; }); }); </script>  
-    <script type="text/javascript"> $(function() { $("#importAutonomousData").click(function (event) { $.getJSON('/importAutonomousData', { },
-        function(data) { }); return false; }); }); </script>  
-        <title>ADMIN</title> 
 </head>
 <body>
       {{navBar()}}
@@ -31,9 +28,6 @@
                         <div class="row m-1">
                             <a id="exportSuperScoutEventData" download="qualitativeDataDump.csv" href="/exportQualitativeEventData" role="button" class="btn btn-info m-1">Export Active Event SuperScout Data</a>
                         </div>
-                        <div class="row m-1">
-                            <a id="exportAutonomousEventData" download="autonomousDataDump.csv" href="/exportAutonomousEventData" role="button" class="btn btn-info m-1">Export Active Event Autonomous Data</a>
-                        </div>
                         <br/>
                         <div class="row m-1">
                             <a id="exportMatchSchedule" download="matchSchedule.csv" href="/exportMatchSchedule" role="button" class="btn btn-info m-1">Export Active Match Schedule</a>
@@ -46,9 +40,6 @@
                         </div>
                         <div class="row m-1">
                             <button id="importSuperScoutData" class="btn btn-info m-1">Import SuperScout Data</a>
-                        </div>
-                        <div class="row m-1">
-                            <button id="importAutonomousData" class="btn btn-info m-1">Import Autonomous Data</a>
                         </div>
                     </div>
                 </div>
