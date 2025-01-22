@@ -73,10 +73,10 @@
     </div>
     <div class="col-4">
         <table class="table table-bordered" style="background-color: rgba(0, 0, 0, 0);">
-            <th scope="col" colspan="3" class="text-center" style="background-color: rgba(0, 0, 0, 0);">Human Player</th>
+            <th scope="col" colspan="3" class="text-center" style="background-color: rgba(0, 0, 0, 0);">Human Player Team #</th>
             <tbody style="background-color: rgba(0, 0, 0, 0);">
                 <tr>
-                    <td>    
+                    <td colspan="3">    
                         {% if (alliance == '1') %}
                         {{ allianceSelectOptions(match.red1, match.red2, match.red3) }}
                         {% elif (alliance == '2') %}
@@ -84,8 +84,66 @@
                         {% endif %}
                     </td>
                 </tr>
+                <tr>
+                    <th class="text-center" colspan="3">Algae Shots Made</th>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-primary" id="hpSMadeMinus">-</button>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control text-center" id="humanplayershotsmade" value="0" disabled>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary" id="hpSMadePlus">+</button>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="text-center" colspan="3">Algae Shots Missed</th>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-primary" id="hpSMissedMinus">-</button>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control text-center" id="humanplayershotsmissed" value="0" disabled>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary" id="hpSMissedPlus">+</button>
+                    </td>
+                </tr>
             </tbody>
         </table>
+        <script>
+            const plusMadeElement = document.getElementById("hpSMadePlus");
+            const subMadeElement = document.getElementById("hpSMadeMinus");
+            const plusMissedElement = document.getElementById("hpSMissedPlus");
+            const subMissedElement = document.getElementById("hpSMissedMinus");
+            plusMadeElement.addEventListener("click", function() {
+                sMade = document.getElementById("humanplayershotsmade")
+                if (Number(sMade.value) < 18) {
+                    sMade.value = Number(sMade.value) + 1;
+                }
+            })
+            subMadeElement.addEventListener("click", function() {
+                sMade = document.getElementById("humanplayershotsmade")
+                if (Number(sMade.value) > 0) {
+                    sMade.value = Number(sMade.value) - 1;
+                }
+            })
+            plusMissedElement.addEventListener("click", function() {
+                sMissed = document.getElementById("humanplayershotsmissed")
+                if (Number(sMissed.value) < 18) {
+                    sMissed.value = Number(sMissed.value) + 1;
+                }
+            })
+            subMissedElement.addEventListener("click", function() {
+                sMissed = document.getElementById("humanplayershotsmissed")
+                if (Number(sMissed.value) > 0) {
+                    sMissed.value = Number(sMissed.value) - 1;
+                }
+            })
+        </script>
     </div>
         <div class="row">
             <input type="submit" value="Submit Match SuperScout" class="btn btn-primary">
