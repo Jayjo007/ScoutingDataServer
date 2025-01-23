@@ -33,8 +33,8 @@ class MatchData(db.Model):
     al1cd = db.Column(db.Integer(), default=0)
     al1ce = db.Column(db.Integer(), default=0)
     al1cf = db.Column(db.Integer(), default=0)
-    al4ca = db.Column(db.Integer(), default=0)
-    tl4cb = db.Column(db.Integer(), default=0) #Teleop
+    tl4ca = db.Column(db.Integer(), default=0) #Teleop
+    tl4cb = db.Column(db.Integer(), default=0) 
     tl4cc = db.Column(db.Integer(), default=0)
     tl4cd = db.Column(db.Integer(), default=0)
     tl4ce = db.Column(db.Integer(), default=0)

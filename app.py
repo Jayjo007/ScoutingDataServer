@@ -254,21 +254,104 @@ def clearEventData():
     db.session.commit()
     return "None"
 
+@app.route("/exportSimpleEventData")
+def exportSimpleEventDataToCSV():
+    with open('outputs/dataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow([
+                         "Event Key", 
+                         "Match Level", 
+                         "Match #", 
+                         "Team #", 
+                         "Autonomous Level 4 Coral",
+                         "Autonomous Level 3 Coral",
+                         "Autonomous Level 2 Coral",
+                         "Autonomous Level 1 Coral",
+                         "Teleop Level 4 Coral",
+                         "Teleop Level 3 Coral",
+                         "Teleop Level 2 Coral",
+                         "Teleop Level 1 Coral",
+                         "Autonomous Level 3 Algae",
+                         "Autonomous Level 2 Algae",
+                         "Teleop Level 3 Algae Removed",
+                         "Teleop Level 2 Algae Removed",
+                         "autoNet", "teleopNet", 
+                         "autoProcessor", "teleopProcessor", 
+                         "endgameShallow", "endgameDeep",
+                         "tablet#",
+                         "scouter",
+                         "timestamp"
+                         ])
+        scoutingData = MatchData.query.filter_by(eventKey=getActiveEventKey())
+        for match in scoutingData:
+            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber,\
+                             match.getCoralScored(4, True),\
+                             match.getCoralScored(3, True),\
+                             match.getCoralScored(2, True),\
+                             match.getCoralScored(1, True),\
+                             match.getCoralScored(4, False),\
+                             match.getCoralScored(3, False),\
+                             match.getCoralScored(2, False),\
+                             match.getCoralScored(1, False),\
+                             match.getAlgaeRemoved(3, True),\
+                             match.getAlgaeRemoved(2, True),\
+                             match.getAlgaeRemoved(3, False),\
+                             match.getAlgaeRemoved(2, False),\
+                             match.aN, match.tN, match.aP, match.tP, match.endgameShallow, match.endgameDeep,\
+                             match.tablet, match.scouter, match.timestamp
+                             ])
+    return send_file(
+        'outputs/dataDump.csv',
+        mimetype="text/csv",
+        download_name=getActiveEventKey()+"SimpleDataDump.csv",
+        as_attachment=True)
+
 @app.route("/exportEventData") #TODO: Update this in 2025
 def exportEventDataToCSV():
     with open('outputs/dataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(["Event Key", 
+        writer.writerow([
+                         "Event Key", 
                          "Match Level", 
                          "Match #", 
                          "Team #", 
-                         #TODO: insert here
-                         "Defense",])
+                         "al4ca", "al4cb", "al4cc", "al4cd", "al4ce", "al4cf",
+                         "al3ca", "al3cb", "al3cc", "al3cd", "al3ce", "al3cf",
+                         "al2ca", "al2cb", "al2cc", "al2cd", "al2ce", "al2cf",
+                         "al1ca", "al1cb", "al1cc", "al1cd", "al1ce", "al1cf",
+                         "tl4ca", "tl4cb", "tl4cc", "tl4cd", "tl4ce", "tl4cf",
+                         "tl3ca", "tl3cb", "tl3cc", "tl3cd", "tl3ce", "tl3cf",
+                         "tl2ca", "tl2cb", "tl2cc", "tl2cd", "tl2ce", "tl2cf",
+                         "tl1ca", "tl1cb", "tl1cc", "tl1cd", "tl1ce", "tl1cf",
+                         "al3aa", "al3ab", "al3ac",
+                         "al2aa", "al2ab", "al2ac",
+                         "tl3aa", "tl3ab", "tl3ac",
+                         "tl2aa", "tl2ab", "tl2ac",
+                         "autoNet", "teleopNet", 
+                         "autoProcessor", "teleopProcessor", 
+                         "endgameShallow", "endgameDeep",
+                         "tablet#",
+                         "scouter",
+                         "timestamp"
+                         ])
         scoutingData = MatchData.query.filter_by(eventKey=getActiveEventKey())
         for match in scoutingData:
             writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber,\
-                             #TODO: insert game specific here
-                             match.defense])
+                             match.al4ca, match.al4cb, match.al4cc, match.al4cd, match.al4ce, match.al4cf,\
+                             match.al3ca, match.al3cb, match.al3cc, match.al3cd, match.al3ce, match.al3cf,\
+                             match.al2ca, match.al2cb, match.al2cc, match.al2cd, match.al2ce, match.al2cf,\
+                             match.al1ca, match.al1cb, match.al1cc, match.al1cd, match.al1ce, match.al1cf,\
+                             match.tl4ca, match.tl4cb, match.tl4cc, match.tl4cd, match.tl4ce, match.tl4cf,\
+                             match.tl3ca, match.tl3cb, match.tl3cc, match.tl3cd, match.tl3ce, match.tl3cf,\
+                             match.tl2ca, match.tl2cb, match.tl2cc, match.tl2cd, match.tl2ce, match.tl2cf,\
+                             match.tl1ca, match.tl1cb, match.tl1cc, match.tl1cd, match.tl1ce, match.tl1cf,\
+                             match.al3aa, match.al3ab, match.al3ac,\
+                             match.al2aa, match.al2ab, match.al2ac,\
+                             match.tl3aa, match.tl3ab, match.tl3ac,\
+                             match.tl2aa, match.tl2ab, match.tl2ac,\
+                             match.aN, match.tN, match.aP, match.tP, match.endgameShallow, match.endgameDeep,\
+                             match.tablet, match.scouter, match.timestamp
+                             ])
     return send_file(
         'outputs/dataDump.csv',
         mimetype="text/csv",
@@ -277,8 +360,6 @@ def exportEventDataToCSV():
 
 @app.route("/exportQualitativeEventData")
 def exportSuperScoutDataToCSV(): #TODO: Update this in 2025
-    # with open("outputs/Adjacency.csv") as fp:
-    #     csv = fp.read()
     with open('outputs/qualitativeDataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(["Event Key", 
@@ -287,11 +368,12 @@ def exportSuperScoutDataToCSV(): #TODO: Update this in 2025
                          "Team #", 
                          "Broken", 
                          "Notes", 
+                         "Start Position",
                          "Overall"])
         scoutingData = SuperScoutRecord.query.filter_by(eventKey=getActiveEventKey())
         for match in scoutingData:
             writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber,\
-                              match.broken, match.notes, match.overall])
+                              match.broken, match.notes, match.startPosition, match.overall])
     return send_file(
         'outputs/qualitativeDataDump.csv',
         mimetype="text/csv",
