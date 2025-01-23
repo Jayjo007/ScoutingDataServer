@@ -6,6 +6,7 @@ class SuperScoutRecord(db.Model):
     eventKey = db.Column(db.String(50), primary_key=True)
     matchNumber = db.Column(db.Integer(), primary_key=True)
     matchLevel = db.Column(db.String(5))
+    startPosition = db.Column(db.String(10))
     broken = db.Column(db.Integer())
     notes = db.Column(db.String(255))
     overall = db.Column(db.String(10))

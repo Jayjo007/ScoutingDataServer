@@ -298,25 +298,6 @@ def exportSuperScoutDataToCSV(): #TODO: Update this in 2025
         download_name=getActiveEventKey()+"SuperScoutDataDump.csv",
         as_attachment=True)
 
-@app.route("/exportAutonomousEventData")
-def exportAutonomousDataToCSV():
-    # with open("outputs/Adjacency.csv") as fp:
-    #     csv = fp.read()
-    with open('outputs/autonomousDataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(["Event Key", 
-                         "Match Level", 
-                         "Match #" #TODO: insert gamespecific auto data here
-                         ])
-        scoutingData = AutonomousData.query.filter_by(eventKey=getActiveEventKey())
-        for match in scoutingData:
-            writer.writerow([match.eventKey, match.matchLevel, match.matchNumber, match.teamNumber, match.note_1, match.note_2, match.note_3, match.note_4, match.note_5, match.note_6, match.note_7, match.note_8])
-    return send_file(
-        'outputs/autonomousDataDump.csv',
-        mimetype="text/csv",
-        download_name=getActiveEventKey()+"AutonomousDataDump.csv",
-        as_attachment=True)
-
 @app.route("/exportMatchSchedule")
 def exportMatchScheduleToCSV():
     # with open("outputs/Adjacency.csv") as fp:
@@ -421,30 +402,6 @@ def importSuperScoutDataFromOtherServer():
                 db.session.commit()
     return "None"
 
-@app.route("/importAutonomousData")
-def importAutonomousDataFromOtherServer():
-    with open('imports/autonomousData/autonomousData.csv', newline='') as csvfile:
-        csvreader = csv.reader(csvfile, delimiter=',')
-        for row in csvreader:
-            print(str(len(row)))
-            print(row[1] + ": " + row[0])
-            if (len(row) >= 12 and row[0] == getActiveEventKey() and row[0] != "Event Key"):
-                print("Processing")
-                matchData = AutonomousData(row[3], row[2], row[0], row[1])
-                """TODO: 2025 Game Specific
-                matchData.note_1 = row[4]
-                matchData.note_2 = row[5]
-                matchData.note_3 = row[6]
-                matchData.note_4 = row[7]
-                matchData.note_5 = row[8]
-                matchData.note_6 = row[9]
-                matchData.note_7 = row[10]
-                matchData.note_8 = row[11]
-                """
-                db.session.add(matchData)
-                db.session.commit()
-    return "None"
-
 @app.route("/superScout")
 def superScoutLanding():
     form = SelectSuperScoutForm()
@@ -542,6 +499,7 @@ def processSuperScout(request, dsN):
     record = SuperScoutRecord(teamNumber, getActiveEventKey(), request.form.get("matchNumber"))
     record.matchLevel = getCurrentMatchLevel()
     #TODO: 2025 specific
+    record.startPosition = request.form.get(dsN+"Position")
     broken = request.form.get(dsN+"Broken")
     if (broken=="true"):
         record.broken = 1
@@ -551,43 +509,12 @@ def processSuperScout(request, dsN):
     record.overall = request.form.get(dsN+"Overall")
     db.session.add(record)
     db.session.commit()
-    autoData = AutonomousData(teamNumber, request.form.get("matchNumber"), getActiveEventKey(), getCurrentMatchLevel())
-    """TODO: 2025 specific
-    if (request.form.get("note1") == teamNumber):
-        autoData.note_1 = 1
-    else:
-        autoData.note_1 = 0
-    if (request.form.get("note2") == teamNumber):
-        autoData.note_2 = 1
-    else:
-        autoData.note_2 = 0
-    if (request.form.get("note3") == teamNumber):
-        autoData.note_3 = 1
-    else:
-        autoData.note_3 = 0
-    if (request.form.get("note4") == teamNumber):
-        autoData.note_4 = 1
-    else:
-        autoData.note_4 = 0
-    if (request.form.get("note5") == teamNumber):
-        autoData.note_5 = 1
-    else:
-        autoData.note_5 = 0
-    if (request.form.get("note6") == teamNumber):
-        autoData.note_6 = 1
-    else:
-        autoData.note_6 = 0
-    if (request.form.get("note7") == teamNumber):
-        autoData.note_7 = 1
-    else:
-        autoData.note_7 = 0
-    if (request.form.get("note8") == teamNumber):
-        autoData.note_8 = 1
-    else:
-        autoData.note_8 = 0
-    """
-    db.session.add(autoData)
-    db.session.commit()   
+    if (request.form.get("human_player_team") == teamNumber):
+        hpData = HumanPlayerData(teamNumber,record.matchNumber, record.eventKey, record.matchLevel)
+        hpData.shotsMade = int(request.form.get("humanplayershotsmade"))
+        hpData.shotsMissed = int(request.form.get("humanplayershotsmissed"))
+        db.session.add(hpData)
+        db.session.commit()   
 
 def validate_preview(form, field):
     if int(field.data) not in getEventTeams():
@@ -756,8 +683,8 @@ def setFieldSide(newEventLevel):
 
 from models import ActiveEventKey
 from utils import *
-from models import MatchSchedule, TeamAtEvent, AutonomousData, SuperScoutRecord
-from models import MatchData, PitScoutRecord, TeamRecord
+from models import MatchSchedule, TeamAtEvent, SuperScoutRecord
+from models import MatchData, PitScoutRecord, TeamRecord, HumanPlayerData
 from models.match_averages import MatchAverages
 
 with app.app_context():

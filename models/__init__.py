@@ -3,7 +3,6 @@ from .active_event_key import ActiveEventKey
 from .match_schedule import MatchSchedule
 from .team_at_event import TeamAtEvent
 from .data_validation import DataValidation
-from .autonomous_data import AutonomousData
 from .superscoutrecord import SuperScoutRecord
 from .matchdata import MatchData
 from .pitscoutrecord import PitScoutRecord
