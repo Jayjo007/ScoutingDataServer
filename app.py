@@ -534,18 +534,13 @@ def downloadMatchBreakdowns():
     print("Downloading match breakdowns for event " + getActiveEventKey())
     return "None"
 
-@app.route("/app/downloadActiveMatchSchedule")
+@app.route("/app/getData")
 def downloadMatchScheduleToApp():
     matches = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel()).all()
     data = [ row.as_dict() for row in matches ]
     returnInfo = dict()
     returnInfo["matches"] = data
-    return jsonify(response = returnInfo, status=200, mimetype="application/json")
-
-@app.route("/app/getSettings")
-def getSettingsToApp():
     settings = ActiveEventKey.query.filter_by(index=3).first_or_404()
-    returnInfo = dict()
     returnInfo["scoringTable"] = settings.activeEventKey
     return jsonify(response = returnInfo, status=200, mimetype="application/json")
 

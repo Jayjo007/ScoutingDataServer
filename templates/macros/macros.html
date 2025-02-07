@@ -1,38 +1,40 @@
 {% macro matchData(match, team) %}
     {% if team != None %}
-    <th scope="row" class="text-end">{{match.matchLevel}}</th>
-    <th scope="row" class="text-center"><a href="/teamMatchBreakdown/{{team}}/{{match.eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></th>
+    <th scope="row" rowspan="2" class="text-end align-middle">{{match.matchLevel}}</th>
+    <th scope="row" rowspan="2" class="text-center align-middle"><a href="/teamMatchBreakdown/{{team}}/{{match.eventKey}}/{{match.matchNumber}}/{{match.matchLevel}}">{{match.matchNumber}}</a></th>
     {% endif %}
-    <td scope="row" class="text-center">{{match.aL1C}}</td>
-    <td scope="row" class="text-center">{{match.aL2C}}</td>
-    <td scope="row" class="text-center">{{match.aL3C}}</td>
-    <td scope="row" class="text-center">{{match.aL4C}}</td>
-    <td scope="row" class="text-center">{{match.aProc}}</td>
-    <td scope="row" class="text-center">{{match.aNet}}</td>
-    <td scope="row" class="text-center">{{match.aL2A}}</td>
-    <td scope="row" class="text-center">{{match.aL3A}}</td>
+    <td scope="row" class="text-center">{{match.getCoralScored(1, True)}}</td>
+    <td scope="row" class="text-center">{{match.getCoralScored(2, True)}}</td>
+    <td scope="row" class="text-center">{{match.getCoralScored(3, True)}}</td>
+    <td scope="row" class="text-center">{{match.getCoralScored(4, True)}}</td>
+    <td scope="row" class="text-center">{{match.aP}}</td>
+    <td scope="row" class="text-center">{{match.aN}}</td>
+    <td scope="row" class="text-center">{{match.getAlgaeRemoved(2, True)}}</td>
+    <td scope="row" class="text-center">{{match.getAlgaeRemoved(3, True)}}</td>
     {% if match.endgameShallow == 0 %}
-    <td rowspan="2" scope="row" class="text-center table-warning">FAIL</td>
+    <td rowspan="2" scope="row" class="text-center align-middle table-warning">FAIL</td>
     {% elif match.endgameShallow == 1 %}
-    <td rowspan="2" scope="row" class="text-center table-success">CLIMBED</td>
+    <td rowspan="2" scope="row" class="text-center align-middle table-success">CLIMBED</td>
     {% else %}
-    <td rowspan="2" scope="row" class="text-center table-success">{{match.endgameShallow}}</td>
+    <td rowspan="2" scope="row" class="text-center align-middle table-success">{{match.endgameShallow}}</td>
     {% endif %}
     {% if match.endgameDeep == 0 %}
-    <td rowspan="2" scope="row" class="text-center table-warning">FAIL</td>
+    <td rowspan="2" scope="row" class="text-center align-middle table-warning">FAIL</td>
+    {% elif match.endgameShallow == 1 %}
+    <td rowspan="2" scope="row" class="text-center align-middle table-success">CLIMBED</td>
     {% else %}
-    <td rowspan="2" scope="row" class="text-center table-success">{{match.endgameDeep}}</td>
+    <td rowspan="2" scope="row" class="text-center align-middle table-success">{{match.endgameDeep}}</td>
     {% endif %}
 </tr>
 <tr>
-    <td scope="row" class="text-center">{{match.tL1C}}</td>
-    <td scope="row" class="text-center">{{match.tL2C}}</td>
-    <td scope="row" class="text-center">{{match.tL3C}}</td>
-    <td scope="row" class="text-center">{{match.tL4C}}</td>
-    <td scope="row" class="text-center">{{match.tProc}}</td>
-    <td scope="row" class="text-center">{{match.tNet}}</td>
-    <td scope="row" class="text-center">{{match.tL2A}}</td>
-    <td scope="row" class="text-center">{{match.tL3A}}</td>
+    <td scope="row" class="text-center">{{match.getCoralScored(1, False)}}</td>
+    <td scope="row" class="text-center">{{match.getCoralScored(2, False)}}</td>
+    <td scope="row" class="text-center">{{match.getCoralScored(3, False)}}</td>
+    <td scope="row" class="text-center">{{match.getCoralScored(4, False)}}</td>
+    <td scope="row" class="text-center">{{match.tP}}</td>
+    <td scope="row" class="text-center">{{match.tN}}</td>
+    <td scope="row" class="text-center">{{match.getAlgaeRemoved(2, False)}}</td>
+    <td scope="row" class="text-center">{{match.getAlgaeRemoved(3, False)}}</td>
 {% endmacro %}
 {% macro matchBreakdownData(match, team, alliance, station) %}
     {% if alliance == True %}
@@ -71,8 +73,7 @@
         <th scope="col" rowspan="3" class="text-center" style="width: 5%">Match #</th>
         <th scope="col" colspan="4" class="text-center">Auto Coral</th>
         <th scope="col" colspan="4" class="text-center">Auto Algae</th>
-        <th scope="col" rowspan="2" colspan="2" class="text-center">Endgame</th> 
-        <th scope="col" rowspan="3" colspan="1" class="text-center">Misc.</th>
+        <th scope="col" rowspan="2" colspan="2" class="text-center align-middle">Endgame</th> 
     </tr>
     <tr>
         <th scope="col" colspan="4" class="text-center">Teleop Coral</th>
@@ -195,7 +196,7 @@
 </div>
 {% endmacro %}
 {% macro teamReview(driverStation, teamNumber, teamName, matchPlayed) %}
-<h4>{{ driverStation }}: {{ teamNumber }} - {{ teamName.teamName }}</h4>
+<h4 class="text-center">{{ driverStation }}: {{ teamNumber }} - {{ teamName.teamName }}</h4>
 <table class="table">
     <thead>
         <tr>  
