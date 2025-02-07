@@ -164,6 +164,5 @@ cython_debug/
 /.venv/
 /__pycache__/
 .env
-/imports/
-/outputs/dataDump.csv
+/outputs/
 models/__pycache__/

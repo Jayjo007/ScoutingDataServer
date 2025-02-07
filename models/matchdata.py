@@ -27,12 +27,7 @@ class MatchData(db.Model):
     al2cd = db.Column(db.Integer(), default=0)
     al2ce = db.Column(db.Integer(), default=0)
     al2cf = db.Column(db.Integer(), default=0)
-    al1ca = db.Column(db.Integer(), default=0)
-    al1cb = db.Column(db.Integer(), default=0)
-    al1cc = db.Column(db.Integer(), default=0)
-    al1cd = db.Column(db.Integer(), default=0)
-    al1ce = db.Column(db.Integer(), default=0)
-    al1cf = db.Column(db.Integer(), default=0)
+    al1c = db.Column(db.Integer(), default=0)
     tl4ca = db.Column(db.Integer(), default=0) #Teleop
     tl4cb = db.Column(db.Integer(), default=0) 
     tl4cc = db.Column(db.Integer(), default=0)
@@ -51,24 +46,11 @@ class MatchData(db.Model):
     tl2cd = db.Column(db.Integer(), default=0)
     tl2ce = db.Column(db.Integer(), default=0)
     tl2cf = db.Column(db.Integer(), default=0)
-    tl1ca = db.Column(db.Integer(), default=0)
-    tl1cb = db.Column(db.Integer(), default=0)
-    tl1cc = db.Column(db.Integer(), default=0)
-    tl1cd = db.Column(db.Integer(), default=0)
-    tl1ce = db.Column(db.Integer(), default=0)
-    tl1cf = db.Column(db.Integer(), default=0)
-    al3aa = db.Column(db.Integer(), default=0) #Autonomous Level 3 Algae (Removal) (Triant) A
-    al3ab = db.Column(db.Integer(), default=0)
-    al3ac = db.Column(db.Integer(), default=0)
-    al2aa = db.Column(db.Integer(), default=0)
-    al2ab = db.Column(db.Integer(), default=0)
-    al2ac = db.Column(db.Integer(), default=0)
-    tl3aa = db.Column(db.Integer(), default=0) #Teleop
-    tl3ab = db.Column(db.Integer(), default=0)
-    tl3ac = db.Column(db.Integer(), default=0)
-    tl2aa = db.Column(db.Integer(), default=0)
-    tl2ab = db.Column(db.Integer(), default=0)
-    tl2ac = db.Column(db.Integer(), default=0)
+    tl1c = db.Column(db.Integer(), default=0)
+    al3a = db.Column(db.Integer(), default=0) #Autonomous Level 3 Algae
+    al2a = db.Column(db.Integer(), default=0)
+    tl3a = db.Column(db.Integer(), default=0) #Teleop
+    tl2a = db.Column(db.Integer(), default=0)
     aN = db.Column(db.Integer(), default=0) #auto net
     tN = db.Column(db.Integer(), default=0) #teleop net
     aP = db.Column(db.Integer(), default=0) #auto processor
@@ -103,12 +85,7 @@ class MatchData(db.Model):
         self.al2cd = int(data["autoL2Coral"][3])
         self.al2ce = int(data["autoL2Coral"][4])
         self.al2cf = int(data["autoL2Coral"][5])
-        self.al1ca = int(data["autoL1Coral"][0])
-        self.al1cb = int(data["autoL1Coral"][1])
-        self.al1cc = int(data["autoL1Coral"][2])
-        self.al1cd = int(data["autoL1Coral"][3])
-        self.al1ce = int(data["autoL1Coral"][4])
-        self.al1cf = int(data["autoL1Coral"][5])
+        self.al1c = int(data["autoL1Coral"])
         self.tl4ca = int(data["teleL4Coral"][0])
         self.tl4cb = int(data["teleL4Coral"][1])
         self.tl4cc = int(data["teleL4Coral"][2])
@@ -127,24 +104,11 @@ class MatchData(db.Model):
         self.tl2cd = int(data["teleL2Coral"][3])
         self.tl2ce = int(data["teleL2Coral"][4])
         self.tl2cf = int(data["teleL2Coral"][5])
-        self.tl1ca = int(data["teleL1Coral"][0])
-        self.tl1cb = int(data["teleL1Coral"][1])
-        self.tl1cc = int(data["teleL1Coral"][2])
-        self.tl1cd = int(data["teleL1Coral"][3])
-        self.tl1ce = int(data["teleL1Coral"][4])
-        self.tl1cf = int(data["teleL1Coral"][5])
-        self.al3aa = int(data["autoL3Algae"][0])
-        self.al3ab = int(data["autoL3Algae"][1])
-        self.al3ac = int(data["autoL3Algae"][2])
-        self.al2aa = int(data["autoL2Algae"][0])
-        self.al2ab = int(data["autoL2Algae"][1])
-        self.al2ac = int(data["autoL2Algae"][2])
-        self.tl3aa = int(data["teleL3Algae"][0])
-        self.tl3ab = int(data["teleL3Algae"][1])
-        self.tl3ac = int(data["teleL3Algae"][2])
-        self.tl2aa = int(data["teleL2Algae"][0])
-        self.tl2ab = int(data["teleL2Algae"][1])
-        self.tl2ac = int(data["teleL2Algae"][2])
+        self.tl1c = int(data["teleL1Coral"])
+        self.al3a = int(data["autoL3Algae"])
+        self.al2a = int(data["autoL2Algae"])
+        self.tl3a = int(data["teleL3Algae"])
+        self.tl2a = int(data["teleL2Algae"])
         self.aN = int(data["autoNet"])
         self.aP = int(data["autoProcessor"])
         self.tN = int(data["teleNet"])
@@ -183,7 +147,7 @@ class MatchData(db.Model):
             elif level==2:
                 return self.al2ca+self.al2cb+self.al2cc+self.al2cd+self.al2ce+self.al2cf
             elif level==1:
-                return self.al1ca+self.al1cb+self.al1cc+self.al1cd+self.al1ce+self.al1cf
+                return self.al1c
         else:
             if level==4:
                 return self.tl4ca+self.tl4cb+self.tl4cc+self.tl4cd+self.tl4ce+self.tl4cf
@@ -192,18 +156,18 @@ class MatchData(db.Model):
             elif level==2:
                 return self.tl2ca+self.tl2cb+self.tl2cc+self.tl2cd+self.tl2ce+self.tl2cf
             elif level==1:
-                return self.tl1ca+self.tl1cb+self.tl1cc+self.tl1cd+self.tl1ce+self.tl1cf
+                return self.tl1c
         return 0
     
     def getAlgaeRemoved(self, level:int, auto:bool) -> int:
         if auto:
             if level==3:
-                return self.al3aa+self.al3ab+self.al3ac
+                return self.al3a
             elif level==2:
-                return self.al2aa+self.al2ab+self.al2ac
+                return self.al2a
         else:
             if level==3:
-                return self.tl3aa+self.tl3ab+self.tl3ac
+                return self.tl3a
             elif level==2:
-                return self.tl2aa+self.tl2ab+self.tl2ac
+                return self.tl2a
         return 0

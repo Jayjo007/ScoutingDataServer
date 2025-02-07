@@ -256,7 +256,7 @@ def clearEventData():
 
 @app.route("/exportSimpleEventData")
 def exportSimpleEventDataToCSV():
-    with open('outputs/dataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
+    with open('outputs/simpleDataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow([
                          "Event Key", 
@@ -301,12 +301,12 @@ def exportSimpleEventDataToCSV():
                              match.tablet, match.scouter, match.timestamp
                              ])
     return send_file(
-        'outputs/dataDump.csv',
+        'outputs/simpleDataDump.csv',
         mimetype="text/csv",
         download_name=getActiveEventKey()+"SimpleDataDump.csv",
         as_attachment=True)
 
-@app.route("/exportEventData") #TODO: Update this in 2025
+@app.route("/exportEventData") #DONE: Update this in 2025
 def exportEventDataToCSV():
     with open('outputs/dataDump.csv', 'w', encoding="utf-8", newline="") as csv_file:
         writer = csv.writer(csv_file)
@@ -318,15 +318,15 @@ def exportEventDataToCSV():
                          "al4ca", "al4cb", "al4cc", "al4cd", "al4ce", "al4cf",
                          "al3ca", "al3cb", "al3cc", "al3cd", "al3ce", "al3cf",
                          "al2ca", "al2cb", "al2cc", "al2cd", "al2ce", "al2cf",
-                         "al1ca", "al1cb", "al1cc", "al1cd", "al1ce", "al1cf",
+                         "al1c",
                          "tl4ca", "tl4cb", "tl4cc", "tl4cd", "tl4ce", "tl4cf",
                          "tl3ca", "tl3cb", "tl3cc", "tl3cd", "tl3ce", "tl3cf",
                          "tl2ca", "tl2cb", "tl2cc", "tl2cd", "tl2ce", "tl2cf",
-                         "tl1ca", "tl1cb", "tl1cc", "tl1cd", "tl1ce", "tl1cf",
-                         "al3aa", "al3ab", "al3ac",
-                         "al2aa", "al2ab", "al2ac",
-                         "tl3aa", "tl3ab", "tl3ac",
-                         "tl2aa", "tl2ab", "tl2ac",
+                         "tl1c", 
+                         "al3a",
+                         "al2a",
+                         "tl3a",
+                         "tl2a", 
                          "autoNet", "teleopNet", 
                          "autoProcessor", "teleopProcessor", 
                          "endgameShallow", "endgameDeep",
@@ -340,15 +340,15 @@ def exportEventDataToCSV():
                              match.al4ca, match.al4cb, match.al4cc, match.al4cd, match.al4ce, match.al4cf,\
                              match.al3ca, match.al3cb, match.al3cc, match.al3cd, match.al3ce, match.al3cf,\
                              match.al2ca, match.al2cb, match.al2cc, match.al2cd, match.al2ce, match.al2cf,\
-                             match.al1ca, match.al1cb, match.al1cc, match.al1cd, match.al1ce, match.al1cf,\
+                             match.al1c,\
                              match.tl4ca, match.tl4cb, match.tl4cc, match.tl4cd, match.tl4ce, match.tl4cf,\
                              match.tl3ca, match.tl3cb, match.tl3cc, match.tl3cd, match.tl3ce, match.tl3cf,\
                              match.tl2ca, match.tl2cb, match.tl2cc, match.tl2cd, match.tl2ce, match.tl2cf,\
-                             match.tl1ca, match.tl1cb, match.tl1cc, match.tl1cd, match.tl1ce, match.tl1cf,\
-                             match.al3aa, match.al3ab, match.al3ac,\
-                             match.al2aa, match.al2ab, match.al2ac,\
-                             match.tl3aa, match.tl3ab, match.tl3ac,\
-                             match.tl2aa, match.tl2ab, match.tl2ac,\
+                             match.tl1c,\
+                             match.al3a,\
+                             match.al2a,\
+                             match.tl3a,\
+                             match.tl2a,\
                              match.aN, match.tN, match.aP, match.tP, match.endgameShallow, match.endgameDeep,\
                              match.tablet, match.scouter, match.timestamp
                              ])
@@ -442,23 +442,32 @@ def importMatchDataFromOtherServer():
                 data["matchLevel"] = row[1]
                 data["matchNumber"] = row[2]
                 data["teamNumber"] = row[3]
-                """ TODO: 2025 game data
-                data["autoSpeaker"] = row[4]
-                data["autoAmp"] = row[5]
-                data["teleSpeaker"] = row[6]
-                data["teleAmp"] = row[7]
-                if (len(row) == 13):
-                    data["teleMiss"] = row[8]
-                    data["trap"] = row[9]
-                    data["climbStatus"] = row[10]
-                    data["defense"] = row[11]
-                    data["pass"] = row[12]
+                data["autoL4Coral"] = str(row[4]) + str(row[5]) + str(row[6]) + str(row[7]) + str(row[8]) + str(row[9])
+                data["autoL3Coral"] = str(row[10]) + str(row[11]) + str(row[12]) + str(row[13]) + str(row[14]) + str(row[15])
+                data["autoL2Coral"] = str(row[16]) + str(row[17]) + str(row[18]) + str(row[19]) + str(row[20]) + str(row[21])
+                data["autoL1Coral"] = row[22]
+                data["teleL4Coral"] = str(row[23]) + str(row[24]) + str(row[25]) + str(row[26]) + str(row[27]) + str(row[28])
+                data["teleL3Coral"] = str(row[29]) + str(row[30]) + str(row[31]) + str(row[32]) + str(row[33]) + str(row[34])
+                data["teleL2Coral"] = str(row[35]) + str(row[36]) + str(row[37]) + str(row[38]) + str(row[39]) + str(row[40])
+                data["teleL1Coral"] = row[41]
+                data["autoL3Algae"] = row[42]
+                data["autoL2Algae"] = row[43]
+                data["teleL3Algae"] = row[44]
+                data["teleL2Algae"] = row[45]
+                data["autoNet"] = row[46]
+                data["teleopNet"] = row[47]
+                data["autoProcessor"] = row[48]
+                data["teleNet"] = row[49]
+                data["teleProcessor"] = row[50]
+                if (row[51] == 1):
+                    data["endgame"] = 1
+                elif (row[52] == 1):
+                    data["endgame"] = 2
                 else:
-                    data["trap"] = row[8]
-                    data["climbStatus"] = row[9]
-                    data["defense"] = row[10]
-                    data["pass"] = row[11]
-                """
+                    data["endgame"] = 0
+                data["tablet"] = row[53]
+                data["scouter"] = row[54]
+                data["timestamp"] = row[55]
                 matchData = MatchData(data)
                 db.session.add(matchData)
                 db.session.commit()
@@ -476,7 +485,7 @@ def importSuperScoutDataFromOtherServer():
                 print("Processing")
                 matchData = SuperScoutRecord(row[3], row[0], row[2])
                 matchData.matchLevel = row[1]
-                #matchData.startPosition = row[4] TODO: update
+                matchData.startPosition = row[4]
                 matchData.broken = row[5]
                 matchData.notes = row[6]
                 matchData.overall = row[7]
