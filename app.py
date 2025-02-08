@@ -536,12 +536,13 @@ def downloadMatchBreakdowns():
 
 @app.route("/app/getData")
 def downloadMatchScheduleToApp():
-    matches = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel=getCurrentMatchLevel()).all()
+    matches = MatchSchedule.query.filter_by(eventKey=getActiveEventKey(), matchLevel="qm").all()
     data = [ row.as_dict() for row in matches ]
     returnInfo = dict()
-    returnInfo["matches"] = data
+    returnInfo["matchSchedule"] = data
     settings = ActiveEventKey.query.filter_by(index=3).first_or_404()
     returnInfo["scoringTable"] = settings.activeEventKey
+    returnInfo["eventKey"] = getActiveEventKey()
     return jsonify(response = returnInfo, status=200, mimetype="application/json")
 
 @app.route("/app/uploadMatches")
