@@ -545,13 +545,20 @@ def downloadMatchScheduleToApp():
     returnInfo["eventKey"] = getActiveEventKey()
     return jsonify(response = returnInfo, status=200, mimetype="application/json")
 
-@app.route("/app/uploadMatches")
-def uploadMatches(methods = ["POST"]):
+@app.route("/app/uploadMatches", methods = ["GET","POST"])
+def uploadMatches():
     if(request.method == "POST"):
         payload = urllib.parse.unquote(request.get_data())
         json_object = json.loads(payload)
-        db.session.add(MatchData(json_object))
+        returnInfo = dict()
+        returnInfo["numProcssed"] = 0
+        for match in json_object:
+            if (MatchData.query.filter_by(eventKey=match["event"],teamNumber=match["teamNumber"], matchNumber=match["matchNumber"]).count() == 0):
+                db.session.add(MatchData(match))
+            db.session.flush()
+            returnInfo["numProcssed"] += 1
         db.session.commit()
+        returnInfo["success"] = True
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
     
 @app.route("/admin/generateMatchesInDatabase/<matches>")
@@ -596,12 +603,6 @@ def processSuperScout(request, dsN):
     record.overall = request.form.get(dsN+"Overall")
     db.session.add(record)
     db.session.commit()
-    if (request.form.get("human_player_team") == teamNumber):
-        hpData = HumanPlayerData(teamNumber,record.matchNumber, record.eventKey, record.matchLevel)
-        hpData.shotsMade = int(request.form.get("humanplayershotsmade"))
-        hpData.shotsMissed = int(request.form.get("humanplayershotsmissed"))
-        db.session.add(hpData)
-        db.session.commit()   
 
 def validate_preview(form, field):
     if int(field.data) not in getEventTeams():
