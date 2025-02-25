@@ -113,11 +113,11 @@ class MatchData(db.Model):
         self.aP = int(data["autoProcessor"])
         self.tN = int(data["teleNet"])
         self.tP = int(data["teleProcessor"])
-        if data["endgame"] == 1:
+        if int(data["endgame"]) == 1:
             self.endgameShallow = 1
         else:
             self.endgameShallow = 0
-        if data["endgame"] == 2:
+        if int(data["endgame"]) == 2:
             self.endgameDeep = 1
         else: 
             self.endgameDeep = 0
