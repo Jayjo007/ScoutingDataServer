@@ -614,6 +614,44 @@ def validate_matchNumber(form, field):
     
 def addAllianceAverages(team1, team2, team3):
     totalAverages = MatchAverages(None)
+    totalAverages.aL4C = team1.aL4C+team2.aL4C+team3.aL4C
+    if (totalAverages.aL4C > 12):
+        totalAverages.aL4C = 12
+    totalAverages.aL3C = team1.aL3C+team2.aL3C+team3.aL3C
+    if (totalAverages.aL3C > 12):
+        totalAverages.aL3C = 12
+    totalAverages.aL2C = team1.aL2C+team2.aL2C+team3.aL2C
+    if (totalAverages.aL2C > 12):
+        totalAverages.aL2C = 12
+    totalAverages.aL1C = team1.aL1C+team2.aL1C+team3.aL1C
+    totalAverages.tL4C = team1.tL4C+team2.tL4C+team3.tL4C
+    if (totalAverages.aL4C+totalAverages.tL4C > 12):
+        totalAverages.tL4C = 12-totalAverages.aL4C
+    totalAverages.tL3C = team1.tL3C+team2.tL3C+team3.tL3C
+    if (totalAverages.aL3C+totalAverages.tL3C > 12):
+        totalAverages.tL3C = 12-totalAverages.aL3C
+    totalAverages.tL2C = team1.tL2C+team2.tL2C+team3.tL2C
+    if (totalAverages.aL2C+totalAverages.tL2C > 12):
+        totalAverages.tL2C = 12-totalAverages.aL2C
+    totalAverages.tL1C = team1.tL1C+team2.tL1C+team3.tL1C
+    totalAverages.aL3A = team1.aL3A + team2.aL3A + team3.aL3A
+    if (totalAverages.aL3A > 3):
+        totalAverages.aL3A = 3
+    totalAverages.aL2A = team1.aL2A + team2.aL2A + team3.aL2A
+    if (totalAverages.aL2A > 3):
+        totalAverages.aL2A = 3  
+    totalAverages.tL3A = team1.tL3A + team2.tL3A + team3.tL3A
+    if (totalAverages.aL3A+totalAverages.tL3A > 3):
+        totalAverages.tL3A = 3-totalAverages.aL3A
+    totalAverages.tL2A = team1.tL2A + team2.tL2A + team3.tL2A
+    if (totalAverages.aL2A+totalAverages.tL2A > 3):
+        totalAverages.tL2A = 3-totalAverages.aL2A
+    totalAverages.aNet = team1.aNet + team2.aNet + team3.aNet
+    totalAverages.tNet = team1.tNet + team2.tNet + team3.tNet
+    totalAverages.aProc = team1.aProc + team2.aProc + team3.aProc
+    totalAverages.tProc = team1.tProc + team2.tProc + team3.tProc
+    totalAverages.endgameShallow = team1.endgameShallow + team2.endgameShallow + team3.endgameShallow
+    totalAverages.endgameDeep = team1.endgameDeep + team2.endgameDeep + team3.endgameDeep
     """TODO: 2025 specific
     totalAverages.auto_speaker = team1.auto_speaker + team2.auto_speaker + team3.auto_speaker
     totalAverages.auto_amp = team1.auto_amp + team2.auto_amp + team3.auto_amp

@@ -48,23 +48,32 @@
     {{ matchData(match, team) }}
 {% endmacro %}
 {% macro averages(match, team) %}
-    <td scope="row" class="text-center">{{match.aL1C|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{match.aL2C|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{match.aL3C|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{match.aL4C|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{match.aProc|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{match.aNet|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{match.endgameShallow|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{match.endgameDeep|round(1, 'floor')}}</td>
-    {% if team != None %}
-    <td scope="row" class="text-center">{{match.endgameShallow|round|int}}</td>
-    <td scope="row" class="text-center">{{match.endgameDeep|round|int}}</td>
-    <td scope="row" class="text-center table-secondary">N/A</td>
-    {% else %}
-    <td scope="row" class="text-center">{{match.endgameShallow|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{match.endgameDeep|round(1, 'floor')}}</td>
-    <td scope="row" class="text-center">{{ match.scoreMatch()|round(1, 'floor') }}</td>
-    {% endif %}
+     
+        <td scope="row" class="text-center">{{match.aL1C|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.aL2C|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.aL3C|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.aL4C|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.aProc|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.aNet|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.aL2A|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.aL3A|round(1, 'floor')}}</td>
+        <td scope="row" rowspan="2" class="text-center align-middle">{{match.endgameShallow|round(1, 'floor')}}</td>
+        <td scope="row" rowspan="2" class="text-center align-middle">{{match.endgameDeep|round(1, 'floor')}}</td>
+        {% if team != None %}
+        <td scope="row" rowspan="2" class="text-center align-middle table-secondary">N/A</td>
+        {% else %}
+        <td scope="row" rowspan="2" class="text-center align-middle">{{ match.scoreMatch()|round(1, 'floor') }}</td>
+        {% endif %}
+    </tr>
+    <tr> 
+        <td scope="row" class="text-center">{{match.tL1C|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.tL2C|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.tL3C|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.tL4C|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.tProc|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.tNet|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.tL2A|round(1, 'floor')}}</td>
+        <td scope="row" class="text-center">{{match.tL3A|round(1, 'floor')}}</td>
 {% endmacro %}
 {% macro gameSpecificHeaders() %} 
     <tr>
@@ -126,30 +135,33 @@
 {% macro predictionHelper(team, redAlliance, station) %}
 <tr>
     {% if redAlliance == True %}
-    <th scope="row" class="table-danger text-end">
+    <th scope="row" rowspan="2" class="table-danger text-end align-middle">
         Red {{station}}:
     {% else %}
-    <th scope="row" class="table-primary text-end">
+    <th scope="row" rowspan="2" class="table-primary text-end align-middle">
         Blue {{station}}:
     {% endif %}
     </th>
-    <th scope="row" class="text-center"><a href="/teamBreakdown/{{team.teamNumber}}">{{team.teamNumber}}</a></th>
+    <th scope="row" rowspan="2" class="text-center align-middle"><a href="/teamBreakdown/{{team.teamNumber}}">{{team.teamNumber}}</a></th>
     {% if team.getAverages() != None %}
     {{averages(team.getAverages(), team)}}
     {% else %}
-    <td colspan="9" class="text-center table-warning">
+    <td colspan="11" rowspan="2" class="text-center table-warning">
         No averages to report
     </td>
+    <tr>
+
+    </tr>
     {% endif %}
 </tr>
 {% endmacro %}
 {% macro predictionHelperAlliance(tN, redAlliance) %}
 <tr>
     {% if redAlliance %}
-    <th scope="row" colspan="2" class="text-center table-danger">Red Alliance</th>
+    <th scope="row" rowspan="2" colspan="2" class="text-center table-danger align-middle">Red Alliance</th>
     {{ averages(tN.getRedAllianceAverage(), None)}}
     {% else %}
-    <th scope="row" colspan="2" class="text-center table-primary">Blue Alliance</th>
+    <th scope="row" rowspan="2" colspan="2" class="text-center table-primary align-middle">Blue Alliance</th>
     {{ averages(tN.getBlueAllianceAverage(), None )}}
     {% endif %}
     
@@ -160,26 +172,30 @@
     <h4 class="text-center">Match Prediction</h4>
     <table class="table table-bordered">
         <thead>
-            <tr>  
-                <tr>
-                    <th scope="col" rowspan="2" class="text-center align-middle">Driver</br>Station</th>
-                    <th scope="col" rowspan="2" class="text-center" style="width: 5%">Team #</th>
-                    <th scope="col" colspan="2" class="text-center">Auto</th>
-                    <th scope="col" colspan="4" class="text-center">Teleop</th>
-                    <th scope="col" colspan="2" class="text-center">Endgame</th> 
-                    <th scope="col" colspan="1" class="text-center">Misc.</th>
-                </tr>
-                <tr>
-                    <th scope="col" class="text-center">Speaker</th>
-                    <th scope="col" class="text-center">Amp</th>
-                    <th scope="col" class="text-center">Speaker</th>
-                    <th scope="col" class="text-center">Amp</th>
-                    <th scope="col" class="text-center">Misses</th>
-                    <th scope="col" class="text-center">Pass</th>
-                    <th scope="col" class="text-center">Trap</th>
-                    <th scope="col" class="text-center">Climb</th>
-                    <th scope="col" class="text-center">Total Score</th>
-                </tr>
+            <tr>
+
+                <th scope="col" rowspan="3" class="align-middle" style="width: 5%">Driver</br> Station</th>
+                <th scope="col" rowspan="3" class="text-center align-middle" style="width: 5%">Team #</th>
+                <th scope="col" colspan="4" class="text-center">Auto Coral</th>
+                <th scope="col" colspan="4" class="text-center">Auto Algae</th>
+                <th scope="col" rowspan="2" colspan="2" class="text-center align-middle">Endgame</th> 
+                <th scope="col" rowspan="3" class="text-center align-middle">Score</th>
+            </tr>
+            <tr>
+                <th scope="col" colspan="4" class="text-center">Teleop Coral</th>
+                <th scope="col" colspan="4" class="text-center">Teleop Algae</th>
+            </tr>
+            <tr>
+                <th scope="col" class="text-center">L1</th>
+                <th scope="col" class="text-center">L2</th>
+                <th scope="col" class="text-center">L3</th>
+                <th scope="col" class="text-center">L4</th>
+                <th scope="col" class="text-center">Processor</th>
+                <th scope="col" class="text-center">Net</th>
+                <th scope="col" class="text-center">L2</th>
+                <th scope="col" class="text-center">L3</th>
+                <th scope="col" class="text-center">Shallow</th>
+                <th scope="col" class="text-center">Deep</th>
             </tr>
         </thead>
         <tbody>
