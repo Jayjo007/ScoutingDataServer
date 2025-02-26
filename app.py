@@ -561,6 +561,25 @@ def uploadMatches():
         returnInfo["success"] = True
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
     
+@app.route("/app/uploadPitData", methods = ["GET", "POST"])
+def uploadPitData():
+    if (request.method == "POST"):
+        payload = urllib.parse.unquote(request.get_data())
+        json_object = json.loads(payload)
+        #json_object = request.get_json()
+        returnInfo = dict()
+        returnInfo["numProcessed"] = 0
+        
+        for teamRecord in json_object:
+            if (PitScoutRecord.query.filter_by(eventKey=teamRecord["event"], teamNumber=teamRecord["teamNumber"]).count() == 0):
+                db.session.add(PitScoutRecord(teamRecord))
+                db.session.flush()
+            returnInfo["numProcessed"] += 1
+        db.session.commit()
+        returnInfo["success"] = True
+        return jsonify(response = returnInfo, status=200, mimetype="application/json") 
+
+    
 @app.route("/admin/generateMatchesInDatabase/<matches>")
 def generateMatchesInDatabase(matches):
     for k in range(int(matches)):
@@ -652,17 +671,6 @@ def addAllianceAverages(team1, team2, team3):
     totalAverages.tProc = team1.tProc + team2.tProc + team3.tProc
     totalAverages.endgameShallow = team1.endgameShallow + team2.endgameShallow + team3.endgameShallow
     totalAverages.endgameDeep = team1.endgameDeep + team2.endgameDeep + team3.endgameDeep
-    """TODO: 2025 specific
-    totalAverages.auto_speaker = team1.auto_speaker + team2.auto_speaker + team3.auto_speaker
-    totalAverages.auto_amp = team1.auto_amp + team2.auto_amp + team3.auto_amp
-    totalAverages.tele_speaker = team1.tele_speaker + team2.tele_speaker + team3.tele_speaker
-    totalAverages.tele_amp = team1.tele_amp + team2.tele_amp + team3.tele_amp
-    totalAverages.trap = team1.tele_amp + team2.tele_amp + team3.tele_amp
-    if (totalAverages.trap > 3):
-        totalAverages.trap = 3
-    totalAverages.climb = (team1.climb + team2.climb + team3.climb) / 100
-    totalAverages.passing = team1.passing + team2.passing + team3.passing
-    """
     return totalAverages
 
 

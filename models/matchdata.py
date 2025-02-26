@@ -66,7 +66,7 @@ class MatchData(db.Model):
         self.eventKey = data["event"]
         self.matchNumber = data["matchNumber"]
         self.matchLevel = getCurrentMatchLevel()
-        #insert gamespecific TODO
+        #insert gamespecific DONE
         self.al4ca = int(data["autoL4Coral"][0])
         self.al4cb = int(data["autoL4Coral"][1])
         self.al4cc = int(data["autoL4Coral"][2])

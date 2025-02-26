@@ -50,10 +50,10 @@
               <form action="/changeCurrentSide" method="POST">
                 <select name="newSide" id="newSide" class="form-select" aria-label="New Side">
                   <option value="1" {% if fieldSide == "1"%}selected{% endif %}>Scoring Table</option>
-                  <option value="0" {% if fieldSide == "0"%}selected{% endif %}>Amp Side</option>
+                  <option value="0" {% if fieldSide == "0"%}selected{% endif %}>Audience Side</option>
                 </select>
                 <button type="submit" class="btn btn-primary">Set Scouting Field Side</button>
-                <p>Current Field Side: {% if fieldSide == "1"%}Scoring Table{% else %}Amp Side{% endif %}
+                <p>Current Field Side: {% if fieldSide == "1"%}Scoring Table{% else %}Audience Side{% endif %}
                 </p>
               </form>
             </div>
