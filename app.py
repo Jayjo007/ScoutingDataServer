@@ -455,19 +455,18 @@ def importMatchDataFromOtherServer():
                 data["teleL3Algae"] = row[44]
                 data["teleL2Algae"] = row[45]
                 data["autoNet"] = row[46]
-                data["teleopNet"] = row[47]
+                data["teleNet"] = row[47]
                 data["autoProcessor"] = row[48]
-                data["teleNet"] = row[49]
-                data["teleProcessor"] = row[50]
-                if (row[51] == 1):
+                data["teleProcessor"] = row[49]
+                if (row[50] == '1'):
                     data["endgame"] = 1
-                elif (row[52] == 1):
+                elif (row[51] == '1'):
                     data["endgame"] = 2
                 else:
                     data["endgame"] = 0
-                data["tablet"] = row[53]
-                data["scouter"] = row[54]
-                data["timestamp"] = row[55]
+                data["tablet"] = row[52]
+                data["scouter"] = row[53]
+                data["timestamp"] = row[54]
                 matchData = MatchData(data)
                 db.session.add(matchData)
                 db.session.commit()
