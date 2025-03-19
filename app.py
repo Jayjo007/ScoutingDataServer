@@ -15,6 +15,7 @@ ALL_TEAMS_URL = "https://www.thebluealliance.com/api/v3/teams/{page_num}/simple"
 MATCH_SCHEDULE_URL = "https://www.thebluealliance.com/api/v3/event/{event_key}/matches/simple"
 EVENT_TEAMS_URL = "https://www.thebluealliance.com/api/v3/event/{event_key}/teams/simple"
 PING_URL = "https://www.thebluealliance.com/api/v3/status"
+TRISONICS_URL = "https://trisonics-scouting-api.azurewebsites.net/api/GetResults?secret_team_key=4003data&event_key={event_key}"
 
 MAX_TEAM_NUMBER_LENGTH=5 
 
@@ -470,6 +471,59 @@ def importMatchDataFromOtherServer():
                 matchData = MatchData(data)
                 db.session.add(matchData)
                 db.session.commit()
+    return "None"
+
+
+@app.route("/importMatchData4003")
+def importMatchDataFromTrisonics():
+    eventKey = getActiveEventKey()
+    response = requests.get(url=TRISONICS_URL.format(event_key = str(eventKey)))
+    matchDataJson = response.json()
+    for match in matchDataJson:
+        if (MatchData.query.filter_by(eventKey=eventKey,teamNumber=str(match["scouting_team"]), matchNumber=match["match_key"]).count() == 0):
+            data = dict()
+            data["event"] = eventKey
+            data["matchLevel"] = "qm"
+            data["matchNumber"] = match["match_key"]
+            data["teamNumber"] = str(match["scouting_team"])
+            data["autoL4Coral"] = str(int(match["auto_coral4"]))+"00000"
+            data["autoL3Coral"] = str(int(match["auto_coral3"]))+"00000"
+            data["autoL2Coral"] = str(int(match["auto_coral2"]))+"00000"
+            data["autoL1Coral"] = int(match["auto_coral1"])
+            if (match["teleop_coral4"] > 9):
+                data["teleL4Coral"] = str(int(match["teleop_coral4"]-9))+"90000"
+            else:
+                data["teleL4Coral"] = str(int(match["teleop_coral4"]))+"00000"
+            if (match["teleop_coral3"] > 9):
+                data["teleL3Coral"] = str(int(match["teleop_coral3"]-9))+"90000"
+            else:
+                data["teleL3Coral"] = str(int(match["teleop_coral3"]))+"00000"
+            if (match["teleop_coral2"] > 9):
+                data["teleL2Coral"] = str(int(match["teleop_coral2"]-9))+"90000"
+            else:
+                data["teleL2Coral"] = str(int(match["teleop_coral2"]))+"00000"
+            data["teleL1Coral"] = match["teleop_coral1"]
+            data["autoL3Algae"] = 0
+            data["autoL2Algae"] = 0
+            data["teleL3Algae"] = 0
+            data["teleL2Algae"] = 0
+            data["autoNet"] = match["auto_barge"]
+            data["teleNet"] = match["teleop_barge"]
+            data["autoProcessor"] = match["auto_processor"]
+            data["teleProcessor"] = match["teleop_processor"]
+            if (match["endgame_hang_shallow"] == 1):
+                data["endgame"] = 1
+            elif (match["endgame_hang_deep"] == 1):
+                data["endgame"] = 2
+            else:
+                data["endgame"] = 0
+            data["tablet"] = 0
+            data["scouter"] = match["scouter_name"]
+            data["timestamp"] = "2025-03-02 12:22:46.180372"
+            matchData = MatchData(data)
+            db.session.add(matchData)
+            db.session.flush()
+    db.session.commit()
     return "None"
 
 @app.route("/importSuperScoutData")

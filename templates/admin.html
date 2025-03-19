@@ -9,6 +9,8 @@
         function(data) { }); return false; }); }); </script>  
     <script type="text/javascript"> $(function() { $("#importSuperScoutData").click(function (event) { $.getJSON('/importSuperScoutData', { },
         function(data) { }); return false; }); }); </script>  
+    <script type="text/javascript"> $(function() { $("#import4003Data").click(function (event) { $.getJSON('/importMatchData4003', { },
+        function(data) { }); return false; }); }); </script>  
 </head>
 <body>
       {{navBar()}}
@@ -43,6 +45,9 @@
                         </div>
                         <div class="row m-1">
                             <button id="importSuperScoutData" class="btn btn-info m-1">Import SuperScout Data</a>
+                        </div>
+                        <div class="row m-1">
+                            <button id="import4003Data" class="btn btn-info m-1">Download Data From 4003 Server</a>
                         </div>
                     </div>
                 </div>
