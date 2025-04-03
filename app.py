@@ -3,7 +3,7 @@ from extensions import db
 from flask_sqlalchemy import SQLAlchemy
 from wtforms import Form, StringField, validators, ValidationError, BooleanField
 from dotenv import load_dotenv
-import json, urllib, os, csv
+import json, urllib, os, csv, datetime
 import requests
 
 
@@ -470,6 +470,59 @@ def importMatchDataFromOtherServer():
                 matchData = MatchData(data)
                 db.session.add(matchData)
                 db.session.commit()
+    return "None"
+
+@app.route("/importCrevMatchData")
+def importCrevData():
+    with open('imports/crevData/crevDataDump.json', 'r', encoding='utf-8') as jsonFile:
+        data = json.load(jsonFile)
+        for match in list(data.get("matchData", {}).values()):
+            if (MatchData.query.filter_by(eventKey=getActiveEventKey(),teamNumber=str(match["teamNum"]), matchNumber=match["matchNum"]).count() == 0 \
+                and match["currentDate"][2] == "4"):
+                print("Processing")
+                data = dict()
+                data["event"] = getActiveEventKey()
+                data["matchLevel"] = getCurrentMatchLevel()
+                data["matchNumber"] = match["matchNum"]
+                data["teamNumber"] = match["teamNum"]
+                data["autoL4Coral"] = str(int(match["autonL4Num"]))+"00000"
+                data["autoL3Coral"] = str(int(match["autonL3Num"]))+"00000"
+                data["autoL2Coral"] = str(int(match["autonL2Num"]))+"00000"
+                data["autoL1Coral"] = match["autonL1Num"]
+                if (match["teleL4Num"] > 9):
+                    data["teleL4Coral"] = str(int(match["teleL4Num"]-9))+"90000"
+                else:
+                    data["teleL4Coral"] = str(int(match["teleL4Num"]))+"00000"
+                if (match["teleL3Num"] > 9):
+                    data["teleL3Coral"] = str(int(match["teleL3Num"]-9))+"90000"
+                else:
+                    data["teleL3Coral"] = str(int(match["teleL3Num"]))+"00000"
+                if (match["teleL2Num"] > 9):
+                    data["teleL2Coral"] = str(int(match["teleL2Num"]-9))+"90000"
+                else:
+                    data["teleL2Coral"] = str(int(match["teleL2Num"]))+"00000"
+                data["teleL1Coral"] = match["teleL4Num"]
+                data["autoL3Algae"] = 0
+                data["autoL2Algae"] = 0
+                data["teleL3Algae"] = 0
+                data["teleL2Algae"] = 0
+                data["autoNet"] = match["autonNetScoredNum"]
+                data["teleNet"] = match["teleNetScoredNum"]
+                data["autoProcessor"] = match["autonProcessedNum"]
+                data["teleProcessor"] = match["teleProcessedNum"]
+                if (match["CheckShallowClimb"] == '1'):
+                    data["endgame"] = 1
+                elif (match["CheckDeepClimb"] == '1'):
+                    data["endgame"] = 2
+                else:
+                    data["endgame"] = 0
+                data["tablet"] = 1
+                data["scouter"] = ""
+                data["timestamp"] = "crevData"
+                matchData = MatchData(data)
+                db.session.add(matchData)
+                db.session.flush()
+        db.session.commit()
     return "None"
 
 @app.route("/importSuperScoutData")

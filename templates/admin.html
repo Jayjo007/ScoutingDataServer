@@ -8,6 +8,8 @@
     <script type="text/javascript"> $(function() { $("#importMatchData").click(function (event) { $.getJSON('/importMatchData', { },
         function(data) { }); return false; }); }); </script>  
     <script type="text/javascript"> $(function() { $("#importSuperScoutData").click(function (event) { $.getJSON('/importSuperScoutData', { },
+        function(data) { }); return false; }); }); </script>
+    <script type="text/javascript"> $(function() { $("#importCrevData").click(function (event) { $.getJSON('/importCrevMatchData', { },
         function(data) { }); return false; }); }); </script>  
 </head>
 <body>
@@ -43,6 +45,10 @@
                         </div>
                         <div class="row m-1">
                             <button id="importSuperScoutData" class="btn btn-info m-1">Import SuperScout Data</a>
+                        </div>
+                        <br/>
+                        <div class="row m-1">
+                            <button id="importCrevData" class="btn btn-info m-1">Import Data From 2851</a>
                         </div>
                     </div>
                 </div>
