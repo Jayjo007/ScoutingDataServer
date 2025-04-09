@@ -1,0 +1,27 @@
+{% from 'macros/sitewide.html' import htmlHead, navBar %}
+<!DOCTYPE html> 
+<head> 
+    {{htmlHead()}}
+    <title>Merge SuperScout</title>
+   <style>
+ 
+   </style>
+</head>
+<body>
+    <div class="row text-center">
+    <h3>Merge SuperScout Data</h3>
+<div>
+<form action="/MergeSuperScout" method="post">
+        <input type="text" placeholder="insert database name here" name="dbname">
+        <input type="text" placeholder="Insert Name of Other SuperScout Laptop Here" name="SuperScoutName">
+        <button type="submit" class="btn btn-primary mb-2"> Submit </button>
+    
+</form>
+
+</div>
+</div>
+<script>
+    
+  </script>
+    
+</body>

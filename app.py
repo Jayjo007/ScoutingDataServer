@@ -1,3 +1,4 @@
+import urllib.parse
 from flask import Flask, request, render_template, send_file, jsonify
 from extensions import db
 from flask_sqlalchemy import SQLAlchemy
@@ -5,11 +6,15 @@ from wtforms import Form, StringField, validators, ValidationError, BooleanField
 from dotenv import load_dotenv
 import json, urllib, os, csv
 import requests
+import subprocess
+import sqlalchemy 
+from sqlalchemy import column
+import pymysql
 
 
 load_dotenv()
 
-API_KEY = os.getenv("TBA_API_KEY") #fill in
+API_KEY = "1v6TlJutbiJ0b1qaNY4W2fI6kicqDtezvSL5gN0jQYPzyjyAKzxib7nyISKApfbQ" #fill in
 
 ALL_TEAMS_URL = "https://www.thebluealliance.com/api/v3/teams/{page_num}/simple"
 MATCH_SCHEDULE_URL = "https://www.thebluealliance.com/api/v3/event/{event_key}/matches/simple"
@@ -18,11 +23,14 @@ PING_URL = "https://www.thebluealliance.com/api/v3/status"
 
 MAX_TEAM_NUMBER_LENGTH=5 
 
-dbUser = os.getenv("DB_USER")
-dbPass = os.getenv("DB_PASS")
-dbServer = os.getenv("DB_SERVER")
-dbPort = os.getenv("DB_PORT")
-dbName = os.getenv("DB_NAME")
+dbUser = "root"
+dbPass ="Knightvision3175#"
+dbServer = "127.0.0.1"
+dbPort = "3306"
+dbName = "2025_scouting"
+
+
+
 
 connString = f"mysql+pymysql://{dbUser}:{dbPass}@{dbServer}:{dbPort}/{dbName}"
 
@@ -492,6 +500,41 @@ def importSuperScoutDataFromOtherServer():
                 db.session.commit()
     return "None"
 
+
+
+
+
+
+
+
+
+@app.route("/MergeSuperScout", methods = ["GET", "POST"])
+def MergeSuperScout():
+    if request.method == "POST":
+        name = request.form.get("SuperScoutName", type=str)
+        altdbName = request.form.get("dbname", type=str)
+        
+        #try:
+        result = subprocess.run(["ping", "-4", "-n", "1", name], capture_output=True, text=True)
+        end = result.stdout.find("]")
+        altserver = result.stdout[11+len(name):end]
+        conn = pymysql.Connect(host=altserver, user="root", password="Knightvision3175#", db=altdbName, port=3306)
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM superscoutdata")
+        rows = cur.fetchall()
+        for row in rows:
+            record = SuperScoutRecord(row[0], row[1], row[2])
+            record.matchLevel = row[3]
+            record.startPosition = row[4]
+            record.broken = row[5]
+            record.notes = row[6]
+            record.overall = row[7]
+            db.session.add(record)
+            db.session.commit()      
+        #except:
+            #print("name not found")
+    return render_template("merge_superscout.html")
+
 @app.route("/superScout")
 def superScoutLanding():
     form = SelectSuperScoutForm()
@@ -824,4 +867,4 @@ with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)  # Bind to all IPs
+    app.run(host='0.0.0.0', port=5000)  # Bind to computer/ Bind to all IPs 
