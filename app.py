@@ -512,15 +512,18 @@ def importSuperScoutDataFromOtherServer():
 def MergeSuperScout():
     if request.method == "POST":
         name = request.form.get("SuperScoutName", type=str)
-        altdbName = request.form.get("dbname", type=str)
+       
         
-        #try:
-        result = subprocess.run(["ping", "-4", "-n", "1", name], capture_output=True, text=True)
+        try:
+            result = subprocess.run(["ping", "-4", "-n", "1", name], capture_output=True, text=True, check=True)
+        except:
+            return render_template("merge_superscout.html", namenotfound=True)
+
         end = result.stdout.find("]")
         altserver = result.stdout[11+len(name):end]
-        conn = pymysql.Connect(host=altserver, user="root", password="Knightvision3175#", db=altdbName, port=3306)
+        conn = pymysql.Connect(host=altserver, user=dbUser, password=dbPass, db=dbName, port=int(dbPort))
         cur = conn.cursor()
-        cur.execute("SELECT * FROM superscoutdata")
+        cur.execute("SELECT * FROM superscoutdata WHERE eventKey = '" + getActiveEventKey() + "'")
         rows = cur.fetchall()
         for row in rows:
             record = SuperScoutRecord(row[0], row[1], row[2])
@@ -531,9 +534,8 @@ def MergeSuperScout():
             record.overall = row[7]
             db.session.add(record)
             db.session.commit()      
-        #except:
-            #print("name not found")
-    return render_template("merge_superscout.html")
+
+    return render_template("merge_superscout.html", namenotfound=False)
 
 @app.route("/superScout")
 def superScoutLanding():

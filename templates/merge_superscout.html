@@ -11,8 +11,14 @@
     <div class="row text-center">
     <h3>Merge SuperScout Data</h3>
 <div>
+  <div>
+    {% if namenotfound %}
+    <p> Name Not Found</p>
+    {% else %}
+    <p style="display: none;"> Name Not Found</p>
+    {% endif %}
+  </div>
 <form action="/MergeSuperScout" method="post">
-        <input type="text" placeholder="insert database name here" name="dbname">
         <input type="text" placeholder="Insert Name of Other SuperScout Laptop Here" name="SuperScoutName">
         <button type="submit" class="btn btn-primary mb-2"> Submit </button>
     
